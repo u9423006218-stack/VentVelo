@@ -1,0 +1,8 @@
+{
+  "name": "VentVelo – Velosipēdu serviss, izbraukuma buss un veikals",
+  "description": "Profesionāls velosipēdu serviss, reģionālais izbraukuma servisa buss Ventspilī, Usmā un Talsos, velosipēdu salons ar garantiju, aksesuāru noliktava un droši norēķini.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
+
