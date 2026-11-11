@@ -13,6 +13,8 @@ import {
   Sparkles,
   PhoneCall
 } from 'lucide-react';
+import heroWorkshopImg from '../../assets/images/hero_bicycle_workshop_1794340029993.jpg';
+import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340031954.jpg';
 
 export const ServiceCatalog: React.FC = () => {
   const { 
@@ -112,9 +114,8 @@ export const ServiceCatalog: React.FC = () => {
 
           <div className="lg:col-span-5 h-72 lg:h-full relative min-h-[360px]">
             <img
-              src="/src/assets/images/hero_bicycle_workshop_1794340029993.jpg"
+              src={heroWorkshopImg}
               alt="VentVelo darbnīca Rindas ielā 44"
-              referrerPolicy="no-referrer"
               className="w-full h-full object-cover object-center"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent lg:bg-gradient-to-r lg:from-stone-900 lg:via-transparent lg:to-transparent" />
@@ -130,9 +131,8 @@ export const ServiceCatalog: React.FC = () => {
         <div className="bg-stone-100 border border-stone-200 rounded-2xl p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-5 order-2 lg:order-1 rounded-xl overflow-hidden border border-stone-300 shadow-md">
             <img
-              src="/src/assets/images/service_van_mobile_repair_1794340031954.jpg"
+              src={serviceVanImg}
               alt="VentVelo servisa busiņš Kurzemē"
-              referrerPolicy="no-referrer"
               className="w-full h-64 sm:h-72 object-cover"
             />
           </div>

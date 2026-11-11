@@ -13,6 +13,7 @@ import {
   PhoneCall, 
   Sparkles 
 } from 'lucide-react';
+import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340031954.jpg';
 
 export const MobileVanFleet: React.FC = () => {
   const { formatPrice, openBookingWithService } = useApp();
@@ -56,9 +57,8 @@ export const MobileVanFleet: React.FC = () => {
 
         <div className="lg:col-span-5 h-72 lg:h-full min-h-[340px] relative">
           <img
-            src="/src/assets/images/service_van_mobile_repair_1794340031954.jpg"
+            src={serviceVanImg}
             alt="VentVelo servisa busiņš Kurzemē"
-            referrerPolicy="no-referrer"
             className="w-full h-full object-cover"
           />
         </div>
