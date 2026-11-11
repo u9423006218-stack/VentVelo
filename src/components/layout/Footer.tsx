@@ -24,7 +24,7 @@ export const Footer: React.FC = () => {
             <div>
               <h4 className="text-stone-100 font-semibold text-sm">Servisa buss līdz namdurvīm</h4>
               <p className="text-stone-400 text-xs mt-1 leading-relaxed">
-                Savācam un piegādājam atpakaļ Ventspils pilsētā, pie Usmas ezera un Talsu novadā. Aprīkots ar drošiem iekšējiem velostatīviem.
+                Savācam un piegādājam Ventspils pilsētā, pie Usmas ezera un Talsu novadā. Droši vedam uz darbnīcu un atpakaļ.
               </p>
             </div>
           </div>

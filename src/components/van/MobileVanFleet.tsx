@@ -26,7 +26,7 @@ export const MobileVanFleet: React.FC = () => {
         <div className="lg:col-span-7 p-8 sm:p-12 space-y-5">
           <div className="inline-flex items-center gap-2 text-xs font-semibold text-amber-400 bg-amber-950/60 border border-amber-800/60 px-3 py-1 rounded-md">
             <Truck className="w-3.5 h-3.5" />
-            <span>VentVelo mobilās darbnīcas loģistika</span>
+            <span>VentVelo velosipēdu savākšanas un piegādes transports</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white font-heading">
@@ -34,7 +34,7 @@ export const MobileVanFleet: React.FC = () => {
           </h1>
 
           <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-            Vairs nekādas smagu e-velo stiepšanas vai dubļainu velosipēdu stūķēšanas vieglā auto bagāžniekā. Mūsu pilnībā aprīkotais Mercedes Sprinter servisa buss ieradīsies tieši pie Tavām mājām, brīvdienu mājas vai darba vietas, paņems velosipēdu un atvedīs atpakaļ gatavu, tīru un ar garantiju.
+            Vairs nekādas smagu velosipēdu stiepšanas vai dubļainu ratu stūķēšanas vieglā auto bagāžniekā. Mūsu servisa busiņš ieradīsies tieši pie Tavām mājām, brīvdienu mītnes vai darba vietas, paņems velosipēdu un nogādās uz VentVelo darbnīcu. Remontējam gan ar garantiju, gan bez garantijas (par skaidru samaksu). Pēc remonta velosipēdu atvedam atpakaļ gatavu braukšanai.
           </p>
 
           <div className="pt-2 flex flex-wrap gap-4">
@@ -144,10 +144,10 @@ export const MobileVanFleet: React.FC = () => {
       {/* Onboard Van Specifications */}
       <div className="bg-stone-100 border border-stone-200 rounded-2xl p-6 sm:p-10 space-y-6">
         <h3 className="text-xl font-bold text-stone-900 font-heading">
-          Servisa busa borta aprīkojums un drošība
+          Droša velosipēdu transportēšana uz darbnīcu un atpakaļ
         </h3>
         <p className="text-xs sm:text-sm text-stone-600 max-w-3xl leading-relaxed">
-          VentVelo servisa transports nav vienkāršs kravas auto – tas ir aprīkots ar Park Tool remonta statīvu ātriem lauka darbiem, Bosch e-velo datoru diagnostiku, amortizatoru sūkņiem un mīkstajiem Thule iekšējiem stiprinājumiem, kas pilnībā izslēdz rāmju saskaršanos ceļā.
+          Mūsu busiņš ir īpaši pielāgots saudzīgai velosipēdu savākšanai un nogādāšanai uz darbnīcu Rindas ielā 44. Furgons aprīkots ar mīkstinātiem iekšējiem statīviem un stiprinājumiem, kas pilnībā pasargā rāmjus transportēšanas laikā. Darbnīcā meistari veic kvalitatīvu remontu – ar garantiju vai bez garantijas par samaksu.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">

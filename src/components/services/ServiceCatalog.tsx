@@ -148,7 +148,7 @@ export const ServiceCatalog: React.FC = () => {
             </h2>
 
             <p className="text-stone-600 text-sm leading-relaxed">
-              Mēs uzturam speciāli aprīkotu servisa furgonu, kas regulāri apkalpo <strong className="text-stone-900">Ventspils pilsētu, Usmas ezera piekrasti un Talsu novadu</strong>. Savācam velosipēdu no Tavām mājām, darba vietas vai kempinga, droši nostiprinām iekšējos statīvos, darbnīcā saremontējam un atvedam atpakaļ gatavu braukšanai.
+              Ar furgonu savācam velosipēdus no Tavām mājām, darba vietas vai kempinga <strong className="text-stone-900">Ventspils pilsētā, Usmas ezera piekrastē un Talsu novadā</strong> un nogādājam uz mūsu darbnīcu. Darbnīcā veicam pilnu remontu un apkopi – gan ar garantiju, gan bez garantijas (par samaksu). Kad darbs pabeigts, atvedam velosipēdu atpakaļ gatavu braukšanai.
             </p>
 
             {/* Zone breakdown mini grid */}

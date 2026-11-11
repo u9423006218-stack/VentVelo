@@ -311,7 +311,7 @@ export const ServiceBookingModal: React.FC = () => {
               <div>
                 <h4 className="font-bold text-stone-900 text-base">Izvēlies velosipēda nodošanas veidu</h4>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Izmanto mūsu aprīkoto servisa busiņu vai atved velosipēdu uz darbnīcu pats.
+                  Piesaki busiņu velosipēda savākšanai pie durvīm vai atved uz darbnīcu pats.
                 </p>
               </div>
 

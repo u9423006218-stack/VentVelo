@@ -78,7 +78,7 @@ export const SupportChat: React.FC = () => {
 
     if (q.includes('buss') || q.includes('busiņ') || q.includes('savāk') || q.includes('usm') || q.includes('tals') || q.includes('piegād') || q.includes('van')) {
       return {
-        text: 'Mūsu aprīkotais Mercedes Sprinter servisa buss regulāri apkalpo Ventspili (katru darba dienu), Usmas ezera apkārtni (pirmdienās, trešdienās, piektdienās) un Talsu novadu (otrdienās un ceturtdienās). Savācam ričuku tieši pie durvīm, nostiprinām drošos Thule iekšējos statīvos un atvedam atpakaļ gatavu braukšanai!\n\nBrauciena maksa: Ventspilī €8 (virs €50 bez maksas), Usmā €18 (virs €120 bez maksas), Talsos €22 (virs €150 bez maksas).',
+        text: 'Mūsu servisa busiņš regulāri apkalpo Ventspili (katru darba dienu), Usmas ezera apkārtni (pirmdienās, trešdienās, piektdienās) un Talsu novadu (otrdienās un ceturtdienās). Savācam velosipēdu tieši pie durvīm, droši nogādājam uz darbnīcu un saremontējam – ar garantiju vai bez garantijas (par samaksu), un atvedam atpakaļ gatavu braukšanai!\n\nBrauciena maksa: Ventspilī €8 (virs €50 bez maksas), Usmā €18 (virs €120 bez maksas), Talsos €22 (virs €150 bez maksas).',
         quickReplies: ['Pieteikt servisa busiņu', 'Skatīt pakalpojumu cenas'],
       };
     }
