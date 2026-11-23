@@ -15,6 +15,10 @@ import {
   Award,
   CreditCard,
 } from 'lucide-react';
+import catMtbImg from '../../assets/images/cat_mtb_bike_1795451175318.jpg';
+import catGravelImg from '../../assets/images/cat_gravel_bike_1795451176389.jpg';
+import catCityImg from '../../assets/images/cat_city_bike_1795451176543.jpg';
+import catKidsImg from '../../assets/images/cat_kids_bike_1795451176116.jpg';
 
 type FilterDropdownKey =
   | 'category'
@@ -71,25 +75,25 @@ export const BikesShowcase: React.FC = () => {
       id: 'KALNU VELOSIPĒDI (MTB)',
       title: 'KALNU VELOSIPĒDI (MTB)',
       subtitle: 'DRAG Hardy, Fuji Nevada · 27.5" un 29"',
-      image: '/src/assets/images/cat_mtb_bike_1795451175318.jpg',
+      image: catMtbImg,
     },
     {
       id: 'GRAVEL VELOSIPĒDI',
       title: 'GRAVEL VELOSIPĒDI',
       subtitle: 'DRAG Sterrato, VentVelo Baltic · GRX / Claris',
-      image: '/src/assets/images/cat_gravel_bike_1795451176389.jpg',
+      image: catGravelImg,
     },
     {
       id: 'PILSĒTAS VELOSIPĒDI',
       title: 'PILSĒTAS VELOSIPĒDI',
       subtitle: 'DRAG Grand Canyon, Cruiser, Urban CDX',
-      image: '/src/assets/images/cat_city_bike_1795451176543.jpg',
+      image: catCityImg,
     },
     {
       id: 'BĒRNU VELOSIPĒDI',
       title: 'BĒRNU VELOSIPĒDI',
       subtitle: 'DRAG Hardy Jr, Yuki, Adriatica · 20" un 24"',
-      image: '/src/assets/images/cat_kids_bike_1795451176116.jpg',
+      image: catKidsImg,
     },
   ];
 

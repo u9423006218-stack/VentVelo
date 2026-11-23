@@ -244,6 +244,30 @@ export const ServiceCatalog: React.FC = () => {
         </div>
       </section>
 
+      {/* Bike Rental Highlight Strip right on Main Page */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
+          <div className="space-y-2 max-w-2xl">
+            <div className="text-xs font-bold uppercase tracking-wider text-amber-800">
+              Velosipēdu noma · Rindas iela 44 vai piegāde Kurzemē
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-950 font-heading">
+              Vajag velosipēdu brīvdienām vai izbraucienam? Izīrē no €9 dienā!
+            </h2>
+            <p className="text-stone-700 text-sm leading-relaxed">
+              Kalnu (MTB), Gravel, pilsētas, bērnu un E-velosipēdi nomā ar iekļautu ķiveri, slēdzeni un gaismām. Saņem Rindas ielā 44 vai pasūti piegādi ar busiņu Ventspilī, pie Usmas ezera vai Talsos.
+            </p>
+          </div>
+          <button
+            onClick={() => setActiveTab('rental')}
+            className="px-6 py-3.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer shrink-0"
+          >
+            <span>Skatīt nomas velosipēdus</span>
+            <ArrowRight className="w-4 h-4 text-amber-400" />
+          </button>
+        </div>
+      </section>
+
       {/* Regional Mobile Van Feature Spotlight */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="bg-stone-100 border border-stone-200 rounded-2xl p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">

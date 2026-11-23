@@ -80,14 +80,24 @@ export const PaymentGatewayModal: React.FC = () => {
               quantity: 1,
               details: `Izmērs: ${checkoutPayload.data.selectedSize}${checkoutPayload.data.assemblyOption === 'box' ? ' · Kastē (bez garantijas)' : ' · Meistara salikts (+€35) ar garantiju'}`,
             }]
-          : [{
-              id: `ci_${Date.now()}`,
-              type: 'service' as const,
-              productId: checkoutPayload.data?.id || 'service_job',
-              name: checkoutPayload.title,
-              priceEur: totalEur,
-              quantity: 1,
-            }];
+          : checkoutPayload.type === 'rental'
+            ? [{
+                id: `ci_${Date.now()}`,
+                type: 'rental' as const,
+                productId: checkoutPayload.data?.id || 'bike_rental',
+                name: checkoutPayload.title,
+                priceEur: totalEur,
+                quantity: 1,
+                details: `${checkoutPayload.data?.deliveryLabel || 'Saņemšana Rindas ielā 44'} · Ķivere un slēdzene iekļauta`,
+              }]
+            : [{
+                id: `ci_${Date.now()}`,
+                type: 'service' as const,
+                productId: checkoutPayload.data?.id || 'service_job',
+                name: checkoutPayload.title,
+                priceEur: totalEur,
+                quantity: 1,
+              }];
 
       const resolvedMethod =
         paymentMethod === 'card'
@@ -101,9 +111,11 @@ export const PaymentGatewayModal: React.FC = () => {
                 : 'Maksājums pie busiņa vai veikalā Rindas 44';
 
       const guaranteeDuration =
-        checkoutPayload.type === 'single_bike' && checkoutPayload.data?.assemblyOption === 'box'
+        checkoutPayload.type === 'rental'
           ? 0
-          : 24;
+          : checkoutPayload.type === 'single_bike' && checkoutPayload.data?.assemblyOption === 'box'
+            ? 0
+            : 24;
 
       const order: OrderRecord = {
         id: `ord_${Date.now()}`,
@@ -129,7 +141,12 @@ export const PaymentGatewayModal: React.FC = () => {
           {
             itemName: checkoutPayload.title,
             durationMonths: guaranteeDuration,
-            code: guaranteeDuration > 0 ? `CERT-${Math.floor(1000 + Math.random() * 9000)}` : 'BEZ-GARANTIJAS-KASTE',
+            code:
+              checkoutPayload.type === 'rental'
+                ? `NOMA-${Math.floor(1000 + Math.random() * 9000)}`
+                : guaranteeDuration > 0
+                  ? `CERT-${Math.floor(1000 + Math.random() * 9000)}`
+                  : 'BEZ-GARANTIJAS-KASTE',
           }
         ],
       };

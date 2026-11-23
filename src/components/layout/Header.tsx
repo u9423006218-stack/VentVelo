@@ -64,7 +64,7 @@ export const Header: React.FC = () => {
         </button>
 
         {/* Zone 2: Navigation Links (Single-line, unboxed, authentic Latvian) */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-stone-600">
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-sm font-medium text-stone-600">
           <button
             onClick={() => setActiveTab('services')}
             className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 ${
@@ -85,6 +85,17 @@ export const Header: React.FC = () => {
             }`}
           >
             Velosipēdi pārdošanā
+          </button>
+
+          <button
+            onClick={() => setActiveTab('rental')}
+            className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 ${
+              activeTab === 'rental' 
+                ? 'text-stone-950 font-semibold border-b-2 border-stone-950' 
+                : 'hover:text-stone-950'
+            }`}
+          >
+            Velosipēdu noma
           </button>
 
           <button
@@ -202,6 +213,12 @@ export const Header: React.FC = () => {
               className={`text-left py-2 px-3 rounded-md transition-colors ${activeTab === 'bikes' ? 'bg-stone-100 font-semibold' : 'hover:bg-stone-50'}`}
             >
               Velosipēdi pārdošanā
+            </button>
+            <button
+              onClick={() => { setActiveTab('rental'); setMobileMenuOpen(false); }}
+              className={`text-left py-2 px-3 rounded-md transition-colors ${activeTab === 'rental' ? 'bg-stone-100 font-semibold' : 'hover:bg-stone-50'}`}
+            >
+              Velosipēdu noma
             </button>
             <button
               onClick={() => { setActiveTab('accessories'); setMobileMenuOpen(false); }}

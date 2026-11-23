@@ -76,6 +76,13 @@ export const SupportChat: React.FC = () => {
   const generateMechanicAnswer = (query: string): { text: string; quickReplies?: string[] } => {
     const q = query.toLowerCase();
 
+    if (q.includes('nom') || q.includes('īr') || q.includes('iznomāt') || q.includes('rent')) {
+      return {
+        text: 'VentVelo piedāvā arī koptu velosipēdu nomu Rindas ielā 44 vai ar piegādi uz Usmas ezeru, Talsiem un Ventspils adresēm!\n• Pilsētas ritenis: no €7 / 3 st. vai €12 / dienā\n• Kalnu (MTB): no €9 / 3 st. vai €15 / dienā\n• Gravel: no €14 / 3 st. vai €22 / dienā\n• Bērnu ritenis: no €5 / 3 st. vai €9 / dienā\n• E-Velosipēds Bosch: €35 / dienā\nĶivere, slēdzene un lukturi iekļauti bez maksas!',
+        quickReplies: ['Atvērt velosipēdu nomu', 'Pieteikt servisa busiņu'],
+      };
+    }
+
     if (q.includes('kast') || q.includes('salik') || q.includes('mont') || q.includes('35')) {
       return {
         text: 'Piedāvājam divus velosipēda saņemšanas veidus:\n1. Oriģinālajā iepakojumā (kastē) par €0 – pašam jāsamontē un jānoregulē, taču šajā variantā bez darbnīcas garantijas.\n2. Meistara pilnībā salikts un noregulēts par €35 – ar oficiālu 24 mēnešu garantiju, bremžu un pārslēdzēju pārbaudi, kā arī piegādi ar mūsu busiņu vai gatavu saņemšanai Rindas ielā 44!',
@@ -140,8 +147,8 @@ export const SupportChat: React.FC = () => {
     }
 
     return {
-      text: 'Paldies par jautājumu! VentVelo darbojas jau 18 gadus Ventspilī, Rindas ielā 44. Piedāvājam gan DRAG, Fuji un Adriatica velosipēdus (MTB, Gravel, Pilsētas, Bērnu) ar Inbank un ESTO līzingu, gan pilnu servisu ar busiņu Kurzemē.',
-      quickReplies: ['Kaste €0 vai salikts €35?', 'Velosipēdi pārdošanā', 'Vecais ritenis kā pirmā iemaksa'],
+      text: 'Paldies par jautājumu! VentVelo darbojas jau 18 gadus Ventspilī, Rindas ielā 44. Piedāvājam jaunus velosipēdus ar Inbank un ESTO līzingu, velosipēdu nomu un pilnu servisu ar busiņu Kurzemē.',
+      quickReplies: ['Kaste €0 vai salikts €35?', 'Velosipēdi pārdošanā', 'Velosipēdu noma'],
     };
   };
 
@@ -218,6 +225,9 @@ export const SupportChat: React.FC = () => {
                             setIsOpen(false);
                           } else if (qr === 'Skatīt velosipēdus' || qr === 'Velosipēdi pārdošanā' || qr === 'Skatīt elektrovelo') {
                             setActiveTab('bikes');
+                            setIsOpen(false);
+                          } else if (qr === 'Atvērt velosipēdu nomu' || qr === 'Velosipēdu noma') {
+                            setActiveTab('rental');
                             setIsOpen(false);
                           } else {
                             handleSend(qr);

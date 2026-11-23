@@ -19,8 +19,8 @@ import {
 } from '../data/mockData';
 
 interface AppContextType {
-  activeTab: 'services' | 'bikes' | 'accessories' | 'van_fleet' | 'dashboard';
-  setActiveTab: (tab: 'services' | 'bikes' | 'accessories' | 'van_fleet' | 'dashboard') => void;
+  activeTab: 'services' | 'bikes' | 'rental' | 'accessories' | 'van_fleet' | 'dashboard';
+  setActiveTab: (tab: 'services' | 'bikes' | 'rental' | 'accessories' | 'van_fleet' | 'dashboard') => void;
   currency: Currency;
   setCurrency: (currency: Currency) => void;
   formatPrice: (priceEur: number) => string;
@@ -68,12 +68,12 @@ interface AppContextType {
   isCheckoutModalOpen: boolean;
   setIsCheckoutModalOpen: (open: boolean) => void;
   checkoutPayload: {
-    type: 'cart' | 'single_bike' | 'service';
+    type: 'cart' | 'single_bike' | 'service' | 'rental';
     data?: any;
     totalEur: number;
     title: string;
   } | null;
-  openCheckout: (payload: { type: 'cart' | 'single_bike' | 'service'; data?: any; totalEur: number; title: string }) => void;
+  openCheckout: (payload: { type: 'cart' | 'single_bike' | 'service' | 'rental'; data?: any; totalEur: number; title: string }) => void;
   
   // Security Modal
   isSecurityModalOpen: boolean;
@@ -90,7 +90,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeTab, setActiveTab] = useState<'services' | 'bikes' | 'accessories' | 'van_fleet' | 'dashboard'>('services');
+  const [activeTab, setActiveTab] = useState<'services' | 'bikes' | 'rental' | 'accessories' | 'van_fleet' | 'dashboard'>('services');
   const [currency, setCurrency] = useState<Currency>('EUR');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -104,7 +104,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [preselectedServiceId, setPreselectedServiceId] = useState<string | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [checkoutPayload, setCheckoutPayload] = useState<{
-    type: 'cart' | 'single_bike' | 'service';
+    type: 'cart' | 'single_bike' | 'service' | 'rental';
     data?: any;
     totalEur: number;
     title: string;
@@ -270,7 +270,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsBookingModalOpen(true);
   };
 
-  const openCheckout = (payload: { type: 'cart' | 'single_bike' | 'service'; data?: any; totalEur: number; title: string }) => {
+  const openCheckout = (payload: { type: 'cart' | 'single_bike' | 'service' | 'rental'; data?: any; totalEur: number; title: string }) => {
     setCheckoutPayload(payload);
     setIsCheckoutModalOpen(true);
   };

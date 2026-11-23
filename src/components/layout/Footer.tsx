@@ -132,6 +132,14 @@ export const Footer: React.FC = () => {
             </li>
             <li>
               <button 
+                onClick={() => setActiveTab('rental')}
+                className="hover:text-amber-400 transition-colors cursor-pointer"
+              >
+                Velosipēdu noma Ventspilī un Kurzemē
+              </button>
+            </li>
+            <li>
+              <button 
                 onClick={() => setActiveTab('accessories')}
                 className="hover:text-amber-400 transition-colors cursor-pointer"
               >

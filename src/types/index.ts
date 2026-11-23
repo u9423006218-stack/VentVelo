@@ -80,6 +80,23 @@ export interface BikeProduct {
   inspectionPassed: boolean;
 }
 
+export interface BikeRentalItem {
+  id: string;
+  name: string;
+  category: 'Kalnu (MTB)' | 'Gravel' | 'Pilsētas' | 'Bērnu' | 'E-Velosipēdi';
+  description: string;
+  image: string;
+  price3hEur: number;
+  priceDayEur: number;
+  priceWeekendEur: number;
+  priceWeekEur: number;
+  depositEur: number;
+  availableCount: number;
+  sizesAvailable: string[];
+  includedGear: string[];
+  specs: string;
+}
+
 export interface AccessoryProduct {
   id: string;
   name: string;
@@ -157,7 +174,7 @@ export interface UserBike {
 
 export interface CartItem {
   id: string;
-  type: 'bike' | 'accessory' | 'service';
+  type: 'bike' | 'accessory' | 'service' | 'rental';
   productId: string;
   name: string;
   priceEur: number;
