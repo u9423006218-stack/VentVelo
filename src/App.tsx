@@ -6,7 +6,6 @@ import { ServiceCatalog } from './components/services/ServiceCatalog';
 import { ServiceBookingModal } from './components/services/ServiceBookingModal';
 import { BikesShowcase } from './components/shop/BikesShowcase';
 import { BikeRentalShowcase } from './components/rental/BikeRentalShowcase';
-import { AccessoriesInventory } from './components/shop/AccessoriesInventory';
 import { MobileVanFleet } from './components/van/MobileVanFleet';
 import { UserDashboard } from './components/dashboard/UserDashboard';
 import { CartDrawer } from './components/checkout/CartDrawer';
@@ -39,7 +38,6 @@ const MainContent: React.FC = () => {
         {activeTab === 'services' && <ServiceCatalog />}
         {activeTab === 'bikes' && <BikesShowcase />}
         {activeTab === 'rental' && <BikeRentalShowcase />}
-        {activeTab === 'accessories' && <AccessoriesInventory />}
         {activeTab === 'van_fleet' && <MobileVanFleet />}
         {activeTab === 'dashboard' && <UserDashboard />}
       </main>

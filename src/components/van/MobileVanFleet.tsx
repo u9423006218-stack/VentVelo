@@ -11,7 +11,8 @@ import {
   Wrench, 
   Compass, 
   PhoneCall, 
-  Sparkles 
+  Sparkles,
+  MessageCircle
 } from 'lucide-react';
 import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340031954.jpg';
 
@@ -51,6 +52,15 @@ export const MobileVanFleet: React.FC = () => {
             >
               <PhoneCall className="w-4 h-4 text-amber-400" />
               <span>Dispečera tālrunis: +371 27583888</span>
+            </a>
+            <a
+              href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Rakstīt WhatsApp</span>
             </a>
           </div>
         </div>

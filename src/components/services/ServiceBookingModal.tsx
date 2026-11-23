@@ -130,7 +130,7 @@ export const ServiceBookingModal: React.FC = () => {
       paymentMethod: paymentPreference === 'pay_online' ? 'Tiešsaistes maksājumu vārteja' : 'Apmaksa pie busiņa / darbnīcas terminālī',
       currencyUsed: currency,
       guaranteeExpiresAt: new Date(Date.now() + currentPkg.guaranteeMonths * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      mechanicName: 'Jānis Bērziņš (Galvenais meistars, VentVelo)',
+      mechanicName: 'Raivis (Galvenais meistars, VentVelo)',
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
     };
 

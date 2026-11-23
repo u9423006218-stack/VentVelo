@@ -99,17 +99,6 @@ export const Header: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('accessories')}
-            className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 ${
-              activeTab === 'accessories' 
-                ? 'text-stone-950 font-semibold border-b-2 border-stone-950' 
-                : 'hover:text-stone-950'
-            }`}
-          >
-            Aksesuāri un detaļas
-          </button>
-
-          <button
             onClick={() => setActiveTab('van_fleet')}
             className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 ${
               activeTab === 'van_fleet' 
@@ -219,12 +208,6 @@ export const Header: React.FC = () => {
               className={`text-left py-2 px-3 rounded-md transition-colors ${activeTab === 'rental' ? 'bg-stone-100 font-semibold' : 'hover:bg-stone-50'}`}
             >
               Velosipēdu noma
-            </button>
-            <button
-              onClick={() => { setActiveTab('accessories'); setMobileMenuOpen(false); }}
-              className={`text-left py-2 px-3 rounded-md transition-colors ${activeTab === 'accessories' ? 'bg-stone-100 font-semibold' : 'hover:bg-stone-50'}`}
-            >
-              Aksesuāri un detaļas
             </button>
             <button
               onClick={() => { setActiveTab('van_fleet'); setMobileMenuOpen(false); }}

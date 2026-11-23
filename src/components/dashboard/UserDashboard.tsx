@@ -453,7 +453,7 @@ export const UserDashboard: React.FC = () => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-stone-900 text-lg font-heading">Pirkumu un aksesuāru pasūtījumu vēsture</h3>
+              <h3 className="font-bold text-stone-900 text-lg font-heading">Pirkumu un pasūtījumu vēsture</h3>
               <p className="text-xs text-stone-500">
                 Apmaksātie rēķini, čeki un piegādes kodi.
               </p>

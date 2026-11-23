@@ -59,7 +59,7 @@ export const CartDrawer: React.FC = () => {
               <ShoppingBag className="w-12 h-12 text-stone-300 mx-auto" />
               <p className="text-sm font-semibold text-stone-700">Tavs grozs pašlaik ir tukšs</p>
               <p className="text-xs text-stone-500">
-                Apskati mūsu velosipēdus vai braukšanas aksesuāru klāstu.
+                Apskati mūsu velosipēdu pārdošanas vai nomas piedāvājumus.
               </p>
             </div>
           ) : (

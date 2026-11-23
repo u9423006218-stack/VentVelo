@@ -601,13 +601,23 @@ export const BikesShowcase: React.FC = () => {
             <p className="text-xs text-stone-500">
               Pamēģini noņemt kādu no filtriem vai sazinies ar mūsu meistaru par individuālu pasūtījumu tieši no ražotāju piegādēm.
             </p>
-            <button
-              type="button"
-              onClick={resetAllFilters}
-              className="mt-2 px-4 py-2 bg-stone-900 text-white text-xs font-semibold rounded-lg hover:bg-stone-800 cursor-pointer"
-            >
-              Rādīt visus velosipēdus
-            </button>
+            <div className="flex flex-wrap justify-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={resetAllFilters}
+                className="px-4 py-2 bg-stone-900 text-white text-xs font-semibold rounded-lg hover:bg-stone-800 cursor-pointer"
+              >
+                Rādīt visus velosipēdus
+              </button>
+              <a
+                href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg"
+              >
+                Rakstīt meistaram WhatsApp
+              </a>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

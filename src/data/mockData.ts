@@ -36,7 +36,7 @@ export const WORKSHOP_BRANCHES = [
     address: 'Rindas iela 44, Ventspils, LV-3602 (Pārventa)',
     phone: '+371 27583888',
     hours: 'Pirmd. – Piektd.: 10:00 – 18:00 (Sestd.: 10:00 – 15:00)',
-    email: 'ventvelo@ventvelo.lv',
+    email: 'melnakmens@gmail.com',
     isMain: true,
   },
 ];
@@ -916,7 +916,7 @@ export const INITIAL_MAINTENANCE_JOBS: MaintenanceJob[] = [
     paymentMethod: 'Swedbank BankLink (256-bitu SSL šifrēts)',
     currencyUsed: 'EUR',
     guaranteeExpiresAt: '2027-05-10',
-    mechanicName: 'Jānis Bērziņš (Galvenais meistars, VentVelo)',
+    mechanicName: 'Raivis (Galvenais meistars, VentVelo)',
     createdAt: '2026-11-10 09:15',
   },
 ];
@@ -1007,7 +1007,7 @@ export const INITIAL_NOTIFICATIONS: EmailNotification[] = [
     recipientEmail: 'lina.damberga@vatp.lv',
     recipientName: 'Līna Damberga',
     subject: 'Remonta statuss: Notiek darbi pie Trek FX 3 Disc [VV-8492-LV]',
-    previewText: 'Diagnostika pabeigta. Meistars Jānis sācis piedziņas ultraskaņas mazgāšanu un ratu taisnošanu.',
+    previewText: 'Diagnostika pabeigta. Meistars Raivis sācis piedziņas ultraskaņas mazgāšanu un ratu taisnošanu.',
     category: 'status_update',
     timestamp: '2026-11-10 11:45',
     referenceId: 'VV-8492-LV',
@@ -1020,7 +1020,7 @@ export const INITIAL_NOTIFICATIONS: EmailNotification[] = [
         </div>
         <div style="padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
           <h3 style="margin-top: 0; color: #0c0a09;">Pašreizējais statuss: Notiek remonta darbi darbnīcā</h3>
-          <p>Sveiki, Līna! Meistars <strong>Jānis Bērziņš</strong> ir uzlicis velosipēdu uz darba statīva mūsu Rindas ielas 44 darbnīcā.</p>
+          <p>Sveiki, Līna! Meistars <strong>Raivis</strong> ir uzlicis velosipēdu uz darba statīva mūsu Rindas ielas 44 darbnīcā.</p>
           
           <div style="border-left: 3px solid #f59e0b; padding-left: 12px; margin: 16px 0; background: #fffbeb; padding: 12px;">
             <p style="margin: 0; font-size: 14px; color: #292524;">

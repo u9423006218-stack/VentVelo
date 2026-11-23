@@ -19,8 +19,8 @@ import {
 } from '../data/mockData';
 
 interface AppContextType {
-  activeTab: 'services' | 'bikes' | 'rental' | 'accessories' | 'van_fleet' | 'dashboard';
-  setActiveTab: (tab: 'services' | 'bikes' | 'rental' | 'accessories' | 'van_fleet' | 'dashboard') => void;
+  activeTab: 'services' | 'bikes' | 'rental' | 'van_fleet' | 'dashboard';
+  setActiveTab: (tab: 'services' | 'bikes' | 'rental' | 'van_fleet' | 'dashboard') => void;
   currency: Currency;
   setCurrency: (currency: Currency) => void;
   formatPrice: (priceEur: number) => string;
@@ -90,7 +90,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeTab, setActiveTab] = useState<'services' | 'bikes' | 'rental' | 'accessories' | 'van_fleet' | 'dashboard'>('services');
+  const [activeTab, setActiveTab] = useState<'services' | 'bikes' | 'rental' | 'van_fleet' | 'dashboard'>('services');
   const [currency, setCurrency] = useState<Currency>('EUR');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);

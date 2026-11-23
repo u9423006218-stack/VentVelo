@@ -13,7 +13,8 @@ import {
   Sparkles,
   PhoneCall,
   CreditCard,
-  RefreshCw
+  RefreshCw,
+  MessageCircle
 } from 'lucide-react';
 import heroWorkshopImg from '../../assets/images/hero_bicycle_workshop_1794340029993.jpg';
 import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340031954.jpg';
@@ -53,7 +54,7 @@ export const ServiceCatalog: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
-                <span>Salons Rindas ielā 44 un tiešsaistes veikals · 18 gadu pieredze</span>
+                <span>Velosipēdu Salons Rindas ielā 44 un tiešsaistes veikals ar 18 gadu pieredzi</span>
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white font-heading">
                 Velosipēdi pārdošanā
@@ -470,10 +471,21 @@ export const ServiceCatalog: React.FC = () => {
                     <Clock className="w-3.5 h-3.5" />
                     {branch.hours}
                   </span>
-                  <a href={`tel:${branch.phone}`} className="font-semibold text-stone-800 hover:text-amber-600 flex items-center gap-1">
-                    <PhoneCall className="w-3 h-3" />
-                    {branch.phone}
-                  </a>
+                  <div className="flex items-center gap-3">
+                    <a href={`tel:${branch.phone}`} className="font-semibold text-stone-800 hover:text-amber-600 flex items-center gap-1">
+                      <PhoneCall className="w-3 h-3" />
+                      {branch.phone}
+                    </a>
+                    <a
+                      href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      WhatsApp
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}

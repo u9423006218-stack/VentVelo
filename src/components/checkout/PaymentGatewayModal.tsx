@@ -262,6 +262,14 @@ export const PaymentGatewayModal: React.FC = () => {
                 >
                   Skatīt manā velogaražā un pirkumu vēsturē
                 </button>
+                <a
+                  href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-xs inline-flex items-center gap-1.5"
+                >
+                  <span>Rakstīt WhatsApp meistaram</span>
+                </a>
               </div>
             </div>
           ) : (

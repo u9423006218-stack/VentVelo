@@ -8,7 +8,8 @@ import {
   Clock, 
   Truck, 
   CreditCard, 
-  Lock 
+  Lock,
+  MessageCircle
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -140,14 +141,6 @@ export const Footer: React.FC = () => {
             </li>
             <li>
               <button 
-                onClick={() => setActiveTab('accessories')}
-                className="hover:text-amber-400 transition-colors cursor-pointer"
-              >
-                Aksesuāru un detaļu katalogs
-              </button>
-            </li>
-            <li>
-              <button 
                 onClick={() => setActiveTab('dashboard')}
                 className="hover:text-amber-400 transition-colors cursor-pointer"
               >
@@ -164,9 +157,22 @@ export const Footer: React.FC = () => {
               </button>
             </li>
           </ul>
-          <div className="pt-3 text-xs text-stone-500 flex items-center gap-1.5">
-            <Mail className="w-3.5 h-3.5" />
-            <a href="mailto:ventvelo@ventvelo.lv" className="hover:text-amber-400">ventvelo@ventvelo.lv</a>
+          <div className="pt-3 space-y-2 text-xs">
+            <div className="text-stone-400 flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-amber-400" />
+              <a href="mailto:melnakmens@gmail.com" className="hover:text-amber-400 transition-colors">melnakmens@gmail.com</a>
+            </div>
+            <div>
+              <a
+                href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>Rakstīt WhatsApp meistaram</span>
+              </a>
+            </div>
           </div>
         </div>
 
