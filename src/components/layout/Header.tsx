@@ -32,12 +32,12 @@ export const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200">
       {/* Top Announcement Bar */}
-      <div className="bg-stone-900 text-stone-200 px-4 py-1.5 text-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+      <div className="bg-stone-900 text-stone-200 px-3 sm:px-4 py-1.5 text-xs">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 overflow-hidden">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 overflow-hidden">
             <Truck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="font-semibold text-amber-300">Izbraukuma servisa buss:</span>
-            <span className="text-stone-300">Savācam un atvedam velosipēdu Ventspilī, Usmā un Talsos tieši pie durvīm</span>
+            <span className="font-semibold text-amber-300 shrink-0">Izbraukuma servisa buss:</span>
+            <span className="text-stone-300 truncate">Savācam un atvedam velosipēdu Ventspilī, Usmā un Talsos tieši pie durvīm</span>
           </div>
           <div className="hidden sm:flex items-center gap-4 shrink-0 text-stone-400">
             <span>Darbnīca: Rindas iela 44, Ventspils</span>
@@ -53,12 +53,12 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Main Top Bar Contract: 3 zones separated by gap-8 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4 lg:gap-8">
         
         {/* Zone 1: Brand Wordmark (Single text element) */}
         <button
           onClick={() => { setActiveTab('services'); }}
-          className="text-2xl font-bold tracking-tight text-stone-950 font-heading whitespace-nowrap shrink-0 flex items-center gap-2 cursor-pointer"
+          className="text-xl sm:text-2xl font-bold tracking-tight text-stone-950 font-heading whitespace-nowrap shrink-0 flex items-center gap-2 cursor-pointer"
         >
           <span className="text-amber-500">Vent</span>Velo
         </button>
@@ -122,7 +122,7 @@ export const Header: React.FC = () => {
         </nav>
 
         {/* Zone 3: Actions (Currency selector, email inbox, cart, primary CTA) */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           {/* Multi-Currency Selector */}
           <div className="relative">
             <label htmlFor="currency-select" className="sr-only">Valūta</label>
@@ -131,7 +131,7 @@ export const Header: React.FC = () => {
               value={currency}
               onChange={(e) => setCurrency(e.target.value as Currency)}
               aria-label="Izvēlēties valūtu"
-              className="text-xs font-semibold bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-md px-2.5 py-1.5 text-stone-800 transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-stone-900"
+              className="text-xs font-semibold bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-md px-1.5 sm:px-2.5 py-1.5 text-stone-800 transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-stone-900"
             >
               {currencies.map(c => (
                 <option key={c} value={c}>{c}</option>
@@ -142,7 +142,7 @@ export const Header: React.FC = () => {
           {/* Email Notifications Drawer Trigger */}
           <button
             onClick={() => setIsEmailDrawerOpen(true)}
-            className="relative p-2 text-stone-600 hover:text-stone-900 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
+            className="relative p-1.5 sm:p-2 text-stone-600 hover:text-stone-900 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
             title="E-pastu un paziņojumu žurnāls"
             aria-label="E-pastu un paziņojumu žurnāls"
           >
@@ -155,13 +155,13 @@ export const Header: React.FC = () => {
           {/* Cart Trigger */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="relative p-2 text-stone-600 hover:text-stone-900 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
+            className="relative p-1.5 sm:p-2 text-stone-600 hover:text-stone-900 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
             title="Pirkumu grozs"
             aria-label="Pirkumu grozs"
           >
             <ShoppingBag className="w-5 h-5" />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-stone-900 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-stone-900 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                 {cartCount}
               </span>
             )}
@@ -179,7 +179,7 @@ export const Header: React.FC = () => {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-stone-700 hover:text-stone-950 rounded-lg cursor-pointer"
+            className="lg:hidden p-1.5 sm:p-2 text-stone-700 hover:text-stone-950 rounded-lg cursor-pointer"
             aria-label="Atvērt izvēlni"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

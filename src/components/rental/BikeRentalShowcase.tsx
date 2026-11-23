@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { RENTAL_BIKES } from '../../data/mockData';
 import { BikeRentalItem } from '../../types';
@@ -13,6 +13,7 @@ import {
   Users,
   Award,
   ArrowRight,
+  ChevronDown,
 } from 'lucide-react';
 
 type RentalDurationKey = '3h' | 'day' | 'weekend' | 'week';
@@ -34,6 +35,27 @@ export const BikeRentalShowcase: React.FC = () => {
   );
   const [deliveryZone, setDeliveryZone] = useState<RentalDeliveryZone>('rindas44');
   const [addChildSeat, setAddChildSeat] = useState<boolean>(false);
+  const modalBodyRef = useRef<HTMLDivElement>(null);
+  const [showScrollHint, setShowScrollHint] = useState<boolean>(false);
+
+  const checkModalScroll = () => {
+    const el = modalBodyRef.current;
+    if (!el) return;
+    setShowScrollHint(el.scrollHeight - el.scrollTop - el.clientHeight > 24);
+  };
+
+  useEffect(() => {
+    if (selectedBike) {
+      const timer = setTimeout(checkModalScroll, 80);
+      window.addEventListener('resize', checkModalScroll);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', checkModalScroll);
+      };
+    } else {
+      setShowScrollHint(false);
+    }
+  }, [selectedBike, durationType]);
 
   const categories = ['Visi', 'Kalnu (MTB)', 'Gravel', 'Pilsētas', 'Bērnu', 'E-Velosipēdi'];
 
@@ -298,7 +320,11 @@ export const BikeRentalShowcase: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-5 text-xs">
+            <div
+              ref={modalBodyRef}
+              onScroll={checkModalScroll}
+              className="p-4 sm:p-6 overflow-y-auto space-y-5 text-xs"
+            >
               <div className="flex items-center gap-4 bg-stone-50 p-3.5 rounded-xl border border-stone-200">
                 <img
                   src={selectedBike.image}
@@ -475,15 +501,26 @@ export const BikeRentalShowcase: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-stone-50 px-6 py-4 border-t border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            {showScrollHint && (
+              <button
+                type="button"
+                onClick={() => modalBodyRef.current?.scrollBy({ top: 240, behavior: 'smooth' })}
+                className="w-full py-2 px-4 bg-amber-50 hover:bg-amber-100 border-t border-amber-200 text-amber-900 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-colors"
+              >
+                <span>Ritini uz leju: izmērs, piegāde un detaļas</span>
+                <ChevronDown className="w-4 h-4 animate-bounce shrink-0" />
+              </button>
+            )}
+
+            <div className="bg-stone-50 px-4 py-3 sm:px-6 sm:py-4 border-t border-stone-200 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
               <div>
                 <span className="text-[11px] text-stone-500 block">Kopā par nomu:</span>
-                <span className="text-2xl font-bold font-mono text-stone-950 tabular-nums">
+                <span className="text-xl sm:text-2xl font-bold font-mono text-stone-950 tabular-nums">
                   {formatPrice(calculateTotalEur(selectedBike))}
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => handleAddRentalToCart(selectedBike)}

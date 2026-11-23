@@ -51,9 +51,9 @@ export const ServiceCatalog: React.FC = () => {
       {/* Featured Bikes For Sale Preview Section — First & Highly Visible Right on Home Page */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="bg-stone-950 text-white rounded-2xl p-6 sm:p-10 border-2 border-amber-500/70 shadow-xl space-y-8">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
+          <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6 text-center lg:text-left">
+            <div className="space-y-3 max-w-2xl mx-auto lg:mx-0">
+              <div className="inline-flex items-center justify-center lg:justify-start gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
                 <span>Velosipēdu Salons Rindas ielā 44 un tiešsaistes veikals ar 18 gadu pieredzi</span>
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white font-heading">
@@ -66,7 +66,7 @@ export const ServiceCatalog: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('bikes')}
-              className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer shrink-0"
+              className="w-full sm:w-auto px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer shrink-0"
             >
               <span>Atvērt visu velosipēdu katalogu</span>
               <ArrowRight className="w-4 h-4" />
@@ -166,7 +166,7 @@ export const ServiceCatalog: React.FC = () => {
       {/* Workshop & Service Van Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-stone-900 rounded-2xl overflow-hidden border border-stone-800 shadow-xl">
-          <div className="lg:col-span-7 p-8 sm:p-12 lg:p-14 space-y-6">
+          <div className="lg:col-span-7 p-6 sm:p-12 lg:p-14 space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 text-xs font-semibold text-amber-400 bg-amber-950/60 border border-amber-800/60 px-3 py-1 rounded-md">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Jau 18 gadus Kurzemē · Veloserviss un salons Ventspilī</span>
@@ -176,14 +176,14 @@ export const ServiceCatalog: React.FC = () => {
               Meistara roku darbs un servisa buss līdz namdurvīm.
             </h2>
 
-            <p className="text-stone-300 text-base sm:text-lg leading-relaxed max-w-2xl">
+            <p className="text-stone-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0">
               VentVelo darbojas jau <strong className="text-white">18 gadus</strong> – no precīzas ratu spieķošanas un pilnas rāmja pārlasīšanas līdz jaunu kalnu, gravel, pilsētas un bērnu velosipēdu tirdzniecībai ar garantiju. Paņemam un atvedam Tavu ričuku <strong className="text-white">Ventspilī, Usmā un Talsos</strong>.
             </p>
 
-            <div className="pt-2 flex flex-wrap items-center gap-4">
+            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4">
               <button
                 onClick={() => openBookingWithService()}
-                className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold rounded-lg transition-colors flex items-center gap-2 text-sm shadow-md cursor-pointer"
+                className="w-full sm:w-auto px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 text-sm shadow-md cursor-pointer"
               >
                 <Wrench className="w-4 h-4" />
                 <span>Pieteikt servisu un busiņu</span>
@@ -191,7 +191,7 @@ export const ServiceCatalog: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('bikes')}
-                className="px-6 py-3.5 bg-white hover:bg-stone-100 text-stone-950 font-bold rounded-lg transition-colors text-sm border-2 border-amber-400 shadow-lg flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-3.5 bg-white hover:bg-stone-100 text-stone-950 font-bold rounded-lg transition-colors text-sm border-2 border-amber-400 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Velosipēdi pārdošanā (no €248)</span>
                 <ArrowRight className="w-4 h-4 text-amber-600" />
@@ -200,7 +200,7 @@ export const ServiceCatalog: React.FC = () => {
 
             {/* Quick Live Tracking Input Bar */}
             <div className="pt-4 border-t border-stone-800">
-              <form onSubmit={handleTrackSubmit} className="flex flex-col sm:flex-row items-stretch gap-2 max-w-md">
+              <form onSubmit={handleTrackSubmit} className="flex flex-col sm:flex-row items-stretch gap-2 max-w-md mx-auto lg:mx-0">
                 <div className="relative flex-1">
                   <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -218,7 +218,7 @@ export const ServiceCatalog: React.FC = () => {
                   Pārbaudīt statusu
                 </button>
               </form>
-              <div className="flex items-center gap-2 text-[11px] text-stone-400 mt-2">
+              <div className="flex items-center justify-center lg:justify-start gap-2 text-[11px] text-stone-400 mt-2">
                 <span>Aktīva remonta parauga kods:</span>
                 <button 
                   type="button"
@@ -247,7 +247,7 @@ export const ServiceCatalog: React.FC = () => {
 
       {/* Bike Rental Highlight Strip right on Main Page */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs text-center md:text-left">
           <div className="space-y-2 max-w-2xl">
             <div className="text-xs font-bold uppercase tracking-wider text-amber-800">
               Velosipēdu noma · Rindas iela 44 vai piegāde Kurzemē
@@ -261,7 +261,7 @@ export const ServiceCatalog: React.FC = () => {
           </div>
           <button
             onClick={() => setActiveTab('rental')}
-            className="px-6 py-3.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer shrink-0"
+            className="w-full md:w-auto px-6 py-3.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer shrink-0"
           >
             <span>Skatīt nomas velosipēdus</span>
             <ArrowRight className="w-4 h-4 text-amber-400" />
@@ -280,8 +280,8 @@ export const ServiceCatalog: React.FC = () => {
             />
           </div>
 
-          <div className="lg:col-span-7 order-1 lg:order-2 space-y-4">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-700">
+          <div className="lg:col-span-7 order-1 lg:order-2 space-y-4 text-center lg:text-left">
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-xs font-semibold uppercase tracking-wider text-amber-700">
               <Truck className="w-4 h-4" />
               <span>Serviss tieši pie Tavām namdurvīm</span>
             </div>

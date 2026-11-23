@@ -59,6 +59,28 @@ export const BikesShowcase: React.FC = () => {
   const [useTradeIn, setUseTradeIn] = useState<boolean>(false);
   const [tradeInModel, setTradeInModel] = useState<string>('');
   const [tradeInEstimateEur, setTradeInEstimateEur] = useState<number>(100);
+  const modalBodyRef = useRef<HTMLDivElement>(null);
+  const [showScrollHint, setShowScrollHint] = useState<boolean>(false);
+
+  const checkModalScroll = () => {
+    const el = modalBodyRef.current;
+    if (!el) return;
+    const hasMoreBelow = el.scrollHeight - el.scrollTop - el.clientHeight > 24;
+    setShowScrollHint(hasMoreBelow);
+  };
+
+  useEffect(() => {
+    if (selectedBike) {
+      const timer = setTimeout(checkModalScroll, 80);
+      window.addEventListener('resize', checkModalScroll);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', checkModalScroll);
+      };
+    } else {
+      setShowScrollHint(false);
+    }
+  }, [selectedBike, useTradeIn]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -334,16 +356,68 @@ export const BikesShowcase: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+      {/* 4 Main Category Showcase Cards — Placed at the very top */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold text-stone-900 font-heading">Velosipēdu kategorijas</h1>
+          {selectedCategory !== 'Visi' && (
+            <button
+              onClick={() => setSelectedCategory('Visi')}
+              className="text-xs font-semibold text-amber-700 hover:text-amber-800 cursor-pointer shrink-0"
+            >
+              Skatīt visus velosipēdus
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {mainCategories.map((cat) => {
+            const isActive = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => handleCategoryTileClick(cat.id)}
+                className={`group text-left bg-white rounded-xl overflow-hidden border transition-all cursor-pointer ${
+                  isActive
+                    ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-md'
+                    : 'border-stone-200 hover:border-stone-300 shadow-xs hover:shadow-md'
+                }`}
+              >
+                <div className="aspect-4/3 bg-stone-100 overflow-hidden">
+                  <img
+                    src={cat.image}
+                    alt={cat.title}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-3.5 text-center space-y-1">
+                  <div
+                    className={`text-sm font-bold tracking-tight font-heading ${
+                      isActive ? 'text-amber-700' : 'text-stone-800 group-hover:text-stone-950'
+                    }`}
+                  >
+                    {cat.title}
+                  </div>
+                  <div className="text-[11px] text-stone-500 truncate">{cat.subtitle}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Header Banner */}
-      <div className="bg-stone-900 text-white rounded-2xl p-8 sm:p-10 border border-stone-800 space-y-8 shadow-md">
+      <div className="bg-stone-900 text-white rounded-2xl p-6 sm:p-10 border border-stone-800 space-y-8 shadow-md">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="text-xs font-semibold text-amber-400 tracking-wide">
               VentVelo darbojas jau 18 gadus · Rindas iela 44, Ventspils
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white font-heading text-balance">
+            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white font-heading text-balance">
               Velosipēdu salons un katalogs ar garantiju
-            </h1>
+            </h2>
             <p className="text-stone-300 text-sm leading-relaxed">
               Kalnu (MTB), Gravel, pilsētas un bērnu velosipēdi ar 18 gadu servisa pieredzi. Izvēlies pasūtīt riteni oriģinālajā kastē vai uztici meistaram pilnu montāžu ar oficiālu garantiju par €35.
             </p>
@@ -455,58 +529,6 @@ export const BikesShowcase: React.FC = () => {
         </div>
       </section>
 
-      {/* 4 Main Category Showcase Cards (adapted from veloprofs.lv screenshot to VentVelo) */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-stone-900 font-heading">Velosipēdu kategorijas</h2>
-          {selectedCategory !== 'Visi' && (
-            <button
-              onClick={() => setSelectedCategory('Visi')}
-              className="text-xs font-semibold text-amber-700 hover:text-amber-800 cursor-pointer"
-            >
-              Skatīt visus velosipēdus
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {mainCategories.map((cat) => {
-            const isActive = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => handleCategoryTileClick(cat.id)}
-                className={`group text-left bg-white rounded-xl overflow-hidden border transition-all cursor-pointer ${
-                  isActive
-                    ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-md'
-                    : 'border-stone-200 hover:border-stone-300 shadow-xs hover:shadow-md'
-                }`}
-              >
-                <div className="aspect-4/3 bg-stone-100 overflow-hidden">
-                  <img
-                    src={cat.image}
-                    alt={cat.title}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-3.5 text-center space-y-1">
-                  <div
-                    className={`text-sm font-bold tracking-tight font-heading ${
-                      isActive ? 'text-amber-700' : 'text-stone-800 group-hover:text-stone-950'
-                    }`}
-                  >
-                    {cat.title}
-                  </div>
-                  <div className="text-[11px] text-stone-500 truncate">{cat.subtitle}</div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
       {/* Multi-Parameter Filter Bar (adapted from veloprofs.lv MTB filter bar to VentVelo) */}
       <section ref={filterBarRef} className="space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-stone-200 pb-4">
@@ -535,7 +557,7 @@ export const BikesShowcase: React.FC = () => {
                   </button>
 
                   {isOpen && (
-                    <div className="absolute left-0 top-full mt-1.5 z-30 min-w-[230px] bg-white border border-stone-200 rounded-xl shadow-xl p-1.5 space-y-0.5">
+                    <div className="absolute left-0 top-full mt-1.5 z-30 min-w-[210px] max-w-[85vw] bg-white border border-stone-200 rounded-xl shadow-xl p-1.5 space-y-0.5">
                       {cfg.options.map((opt) => (
                         <button
                           key={opt}
@@ -741,14 +763,14 @@ export const BikesShowcase: React.FC = () => {
 
       {/* Detailed Bike Modal (Veloprofs size selector + Box vs +€35 Assembled + Trade-in + Inbank/ESTO) */}
       {selectedBike && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white border border-stone-200 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4">
+          <div className="bg-white border border-stone-200 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
             {/* Modal Header */}
-            <div className="bg-stone-900 text-white px-6 py-4 flex items-center justify-between border-b border-stone-800 shrink-0">
+            <div className="bg-stone-900 text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between border-b border-stone-800 shrink-0">
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-amber-400 font-semibold">{selectedBike.brand}</span>
                 <span className="text-stone-500">·</span>
-                <span className="text-stone-300">{selectedBike.category}</span>
+                <span className="text-stone-300 truncate max-w-[200px] sm:max-w-none">{selectedBike.category}</span>
               </div>
               <button
                 onClick={() => setSelectedBike(null)}
@@ -760,18 +782,22 @@ export const BikesShowcase: React.FC = () => {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                {/* Left: Image & Highlights */}
+            <div
+              ref={modalBodyRef}
+              onScroll={checkModalScroll}
+              className="p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6 relative"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
+                {/* Left: Image & Desktop Highlights */}
                 <div className="md:col-span-5 space-y-4">
-                  <div className="rounded-xl overflow-hidden bg-stone-100 border border-stone-200 aspect-4/3 relative">
+                  <div className="rounded-xl overflow-hidden bg-stone-100 border border-stone-200 h-44 sm:h-52 md:h-auto md:aspect-4/3 relative">
                     <img
                       src={selectedBike.image}
                       alt={selectedBike.name}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute bottom-3 left-3 bg-stone-950/90 text-white text-xs px-2.5 py-1 rounded backdrop-blur-sm flex items-center gap-1.5">
+                    <div className="absolute bottom-2.5 left-2.5 bg-stone-950/90 text-white text-[11px] sm:text-xs px-2.5 py-1 rounded backdrop-blur-sm flex items-center gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                       <span>
                         {assemblyOption === 'assembled'
@@ -781,8 +807,8 @@ export const BikesShowcase: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Specs summary mini grid */}
-                  <div className="grid grid-cols-2 gap-2.5 text-xs">
+                  {/* Specs summary mini grid (Desktop right under photo; shown below options on mobile) */}
+                  <div className="hidden md:grid grid-cols-2 gap-2.5 text-xs">
                     <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
                       <span className="text-stone-500 block text-[11px]">Ātrumi</span>
                       <span className="font-semibold text-stone-900">{selectedBike.groupset}</span>
@@ -802,14 +828,14 @@ export const BikesShowcase: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Right: Contiguous Purchase Module (Veloprofs size boxes + Assembly + Trade-in + Leasing) */}
-                <div className="md:col-span-7 space-y-5">
+                {/* Right: Contiguous Purchase Module (Immediately visible on mobile right below compact photo) */}
+                <div className="md:col-span-7 space-y-4 sm:space-y-5">
                   <div>
-                    <h2 className="text-2xl font-bold text-stone-900 font-heading leading-tight">
+                    <h2 className="text-xl sm:text-2xl font-bold text-stone-900 font-heading leading-tight">
                       {selectedBike.name}
                     </h2>
-                    <div className="mt-2 flex flex-wrap items-baseline gap-3">
-                      <span className="text-3xl font-bold text-stone-950 font-mono tabular-nums">
+                    <div className="mt-1.5 flex flex-wrap items-baseline gap-2.5">
+                      <span className="text-2xl sm:text-3xl font-bold text-stone-950 font-mono tabular-nums">
                         {formatPrice(getFinalPrice(selectedBike))}
                       </span>
                       {selectedBike.originalPriceEur && (
@@ -823,7 +849,7 @@ export const BikesShowcase: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Frame Size Selector (matching veloprofs.lv size buttons with height ranges) */}
+                  {/* Frame Size Selector */}
                   <div>
                     <label className="block text-xs font-semibold text-stone-800 mb-2">
                       Rāmja izmērs (pēc braucēja auguma):
@@ -834,7 +860,7 @@ export const BikesShowcase: React.FC = () => {
                           key={size}
                           type="button"
                           onClick={() => setSelectedSize(size)}
-                          className={`px-3.5 py-2 text-xs font-semibold rounded-lg border cursor-pointer transition-colors ${
+                          className={`px-3 py-2 text-xs font-semibold rounded-lg border cursor-pointer transition-colors ${
                             selectedSize === size
                               ? 'border-stone-950 bg-stone-950 text-white shadow-xs'
                               : 'border-stone-200 bg-white text-stone-700 hover:border-stone-400'
@@ -962,6 +988,26 @@ export const BikesShowcase: React.FC = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Mobile Specs summary mini grid (Placed below size & assembly options on mobile) */}
+                  <div className="grid md:hidden grid-cols-2 gap-2 text-xs pt-1">
+                    <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
+                      <span className="text-stone-500 block text-[11px]">Ātrumi</span>
+                      <span className="font-semibold text-stone-900">{selectedBike.groupset}</span>
+                    </div>
+                    <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
+                      <span className="text-stone-500 block text-[11px]">Bremzes</span>
+                      <span className="font-semibold text-stone-900">{selectedBike.brakes}</span>
+                    </div>
+                    <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
+                      <span className="text-stone-500 block text-[11px]">Rati un riepas</span>
+                      <span className="font-semibold text-stone-900">{selectedBike.specs.wheelSize}</span>
+                    </div>
+                    <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
+                      <span className="text-stone-500 block text-[11px]">Svars</span>
+                      <span className="font-semibold text-stone-900 font-mono">{selectedBike.specs.weightKg} kg</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1009,27 +1055,39 @@ export const BikesShowcase: React.FC = () => {
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="bg-stone-50 px-6 py-4 border-t border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            {/* Clear Scroll-Down Indicator Bar when content continues below */}
+            {showScrollHint && (
+              <button
+                type="button"
+                onClick={() => modalBodyRef.current?.scrollBy({ top: 260, behavior: 'smooth' })}
+                className="w-full py-2 px-4 bg-amber-50 hover:bg-amber-100 border-t border-amber-200 text-amber-900 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-colors"
+              >
+                <span>Ritini uz leju: komplektācija (+€35), maiņa un līzings</span>
+                <ChevronDown className="w-4 h-4 animate-bounce shrink-0" />
+              </button>
+            )}
+
+            {/* Compact Modal Footer (single row on mobile so scrollable area stays large) */}
+            <div className="bg-stone-50 px-4 py-3 sm:px-6 sm:py-4 border-t border-stone-200 flex items-center justify-between gap-2.5 shrink-0">
               <button
                 onClick={() => setSelectedBike(null)}
-                className="px-4 py-2 text-xs font-semibold text-stone-600 hover:text-stone-900 cursor-pointer text-left"
+                className="hidden sm:inline-block px-4 py-2 text-xs font-semibold text-stone-600 hover:text-stone-900 cursor-pointer text-left"
               >
                 Aizvērt
               </button>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 w-full sm:w-auto">
                 <button
                   onClick={() => handleAddToCartFromModal(selectedBike)}
-                  className="px-4 py-2.5 text-xs font-semibold text-stone-800 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg transition-colors cursor-pointer"
+                  className="px-3 sm:px-4 py-2.5 text-xs font-semibold text-stone-800 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg transition-colors cursor-pointer text-center"
                 >
                   Ielikt grozā
                 </button>
                 <button
                   onClick={() => handleDirectBuyFromModal(selectedBike)}
-                  className="px-6 py-2.5 text-xs font-semibold text-stone-950 bg-amber-500 hover:bg-amber-400 rounded-lg transition-colors cursor-pointer shadow-md font-heading"
+                  className="px-3 sm:px-6 py-2.5 text-xs font-semibold text-stone-950 bg-amber-500 hover:bg-amber-400 rounded-lg transition-colors cursor-pointer shadow-md font-heading text-center truncate"
                 >
-                  Pirkt / Inbank un ESTO ({formatPrice(getFinalPrice(selectedBike))})
+                  Pirkt / Līzings ({formatPrice(getFinalPrice(selectedBike))})
                 </button>
               </div>
             </div>

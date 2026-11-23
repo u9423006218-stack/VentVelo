@@ -19,7 +19,7 @@ const MainContent: React.FC = () => {
   const { activeTab, toastMessage } = useApp();
 
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50 font-sans text-stone-900 selection:bg-amber-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-stone-50 font-sans text-stone-900 selection:bg-amber-500 selection:text-white overflow-x-clip">
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="fixed top-18 right-4 sm:right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-200">

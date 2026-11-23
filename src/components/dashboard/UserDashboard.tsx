@@ -120,7 +120,7 @@ export const UserDashboard: React.FC = () => {
         </div>
 
         {/* Dashboard Sub-tabs */}
-        <div className="flex items-center gap-1 p-1 bg-stone-100 rounded-lg shrink-0">
+        <div className="flex flex-wrap items-center gap-1 p-1 bg-stone-100 rounded-lg">
           <button
             onClick={() => setActiveSubTab('tracking')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
