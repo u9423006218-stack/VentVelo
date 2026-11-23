@@ -29,8 +29,12 @@ export const PaymentGatewayModal: React.FC = () => {
     showToast 
   } = useApp();
 
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'banklink' | 'apple_pay' | 'van_pos'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'banklink' | 'inbank' | 'esto' | 'van_pos'>('card');
   const [selectedBank, setSelectedBank] = useState<'swedbank' | 'seb' | 'citadele' | 'luminor'>('swedbank');
+  const [leaseTermMonths, setLeaseTermMonths] = useState<number>(12);
+  const [estoPlan, setEstoPlan] = useState<'esto3' | 'leasing'>('esto3');
+  const [extraTradeIn, setExtraTradeIn] = useState<boolean>(false);
+  const [extraTradeInBike, setExtraTradeInBike] = useState<string>('');
   
   // Card inputs
   const [cardNumber, setCardNumber] = useState('4532 •••• •••• 8821');
@@ -50,7 +54,9 @@ export const PaymentGatewayModal: React.FC = () => {
 
   if (!isCheckoutModalOpen || !checkoutPayload) return null;
 
-  const totalEur = checkoutPayload.totalEur;
+  const totalEur = Math.round(checkoutPayload.totalEur);
+  const monthlyInbankEur = Math.max(10, Math.round(totalEur / leaseTermMonths));
+  const monthlyEstoEur = estoPlan === 'esto3' ? Math.round(totalEur / 3) : Math.max(10, Math.round(totalEur / leaseTermMonths));
 
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,9 +76,9 @@ export const PaymentGatewayModal: React.FC = () => {
               type: 'bike' as const,
               productId: checkoutPayload.data.id,
               name: checkoutPayload.data.name,
-              priceEur: checkoutPayload.data.priceEur,
+              priceEur: totalEur,
               quantity: 1,
-              details: `Izmērs: ${checkoutPayload.data.selectedSize}`,
+              details: `Izmērs: ${checkoutPayload.data.selectedSize}${checkoutPayload.data.assemblyOption === 'box' ? ' · Kastē (bez garantijas)' : ' · Meistara salikts (+€35) ar garantiju'}`,
             }]
           : [{
               id: `ci_${Date.now()}`,
@@ -82,6 +88,22 @@ export const PaymentGatewayModal: React.FC = () => {
               priceEur: totalEur,
               quantity: 1,
             }];
+
+      const resolvedMethod =
+        paymentMethod === 'card'
+          ? `Bankas karte (Visa ...${cardNumber.slice(-4)})`
+          : paymentMethod === 'banklink'
+            ? `${selectedBank.toUpperCase()} BankLink`
+            : paymentMethod === 'inbank'
+              ? `Inbank līzings (${leaseTermMonths} mēn. · ~${formatPrice(monthlyInbankEur)}/mēn.)${extraTradeIn ? ' + Vecā velo maiņa' : ''}`
+              : paymentMethod === 'esto'
+                ? `ESTO nomaksa (${estoPlan === 'esto3' ? '3 daļās bez %' : `${leaseTermMonths} mēn.`})${extraTradeIn ? ' + Vecā velo maiņa' : ''}`
+                : 'Maksājums pie busiņa vai veikalā Rindas 44';
+
+      const guaranteeDuration =
+        checkoutPayload.type === 'single_bike' && checkoutPayload.data?.assemblyOption === 'box'
+          ? 0
+          : 24;
 
       const order: OrderRecord = {
         id: `ord_${Date.now()}`,
@@ -101,17 +123,13 @@ export const PaymentGatewayModal: React.FC = () => {
         },
         deliveryMethod: 'van_delivery',
         paymentStatus: 'paid',
-        paymentMethod: paymentMethod === 'card' 
-          ? `Bankas karte (Visa ...${cardNumber.slice(-4)})` 
-          : paymentMethod === 'banklink' 
-            ? `${selectedBank.toUpperCase()} BankLink` 
-            : 'Maksājums pie busiņa ar POS termināli',
+        paymentMethod: resolvedMethod,
         trackingCode: `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
         guaranteeCertificates: [
           {
             itemName: checkoutPayload.title,
-            durationMonths: 24,
-            code: `CERT-${Math.floor(1000 + Math.random() * 9000)}`,
+            durationMonths: guaranteeDuration,
+            code: guaranteeDuration > 0 ? `CERT-${Math.floor(1000 + Math.random() * 9000)}` : 'BEZ-GARANTIJAS-KASTE',
           }
         ],
       };
@@ -252,20 +270,55 @@ export const PaymentGatewayModal: React.FC = () => {
               {/* Payment Method Selector */}
               <div className="space-y-3">
                 <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider">
-                  Izvēlies apmaksas veidu:
+                  Izvēlies apmaksas vai līzinga veidu:
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('inbank')}
+                    className={`p-3 rounded-xl border text-left text-xs transition-all cursor-pointer relative ${
+                      paymentMethod === 'inbank'
+                        ? 'border-emerald-600 bg-emerald-50/70 font-semibold text-stone-900 ring-1 ring-emerald-500/30 shadow-xs'
+                        : 'border-emerald-200 bg-emerald-50/20 hover:bg-emerald-50/50 text-stone-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                      <span className="text-[10px] font-bold uppercase text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">Populārs</span>
+                    </div>
+                    <div className="font-bold text-stone-900">Inbank līzings</div>
+                    <div className="text-[11px] text-stone-600 tabular-nums">No ~{formatPrice(Math.max(10, Math.round(totalEur / 36)))}/mēn.</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('esto')}
+                    className={`p-3 rounded-xl border text-left text-xs transition-all cursor-pointer relative ${
+                      paymentMethod === 'esto'
+                        ? 'border-amber-500 bg-amber-50 font-semibold text-stone-900 ring-1 ring-amber-500/30 shadow-xs'
+                        : 'border-amber-200 bg-amber-50/30 hover:bg-amber-50/60 text-stone-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <CheckCircle2 className="w-4 h-4 text-amber-600" />
+                      <span className="text-[10px] font-bold uppercase text-amber-900 bg-amber-200/70 px-1.5 py-0.5 rounded">0% ESTO 3</span>
+                    </div>
+                    <div className="font-bold text-stone-900">ESTO nomaksa</div>
+                    <div className="text-[11px] text-stone-600 tabular-nums">3 × {formatPrice(Math.round(totalEur / 3))} bez %</div>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('card')}
                     className={`p-3 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
                       paymentMethod === 'card'
-                        ? 'border-amber-500 bg-amber-50/50 font-semibold text-stone-900 shadow-xs'
+                        ? 'border-stone-900 bg-stone-100 font-semibold text-stone-900 shadow-xs'
                         : 'border-stone-200 hover:bg-stone-50 text-stone-600'
                     }`}
                   >
                     <CreditCard className="w-4 h-4 mb-1 text-stone-700" />
-                    <span>Bankas karte</span>
+                    <div className="font-semibold text-stone-900">Bankas karte</div>
+                    <div className="text-[11px] text-stone-500">Visa / Mastercard</div>
                   </button>
 
                   <button
@@ -273,25 +326,27 @@ export const PaymentGatewayModal: React.FC = () => {
                     onClick={() => setPaymentMethod('banklink')}
                     className={`p-3 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
                       paymentMethod === 'banklink'
-                        ? 'border-amber-500 bg-amber-50/50 font-semibold text-stone-900 shadow-xs'
+                        ? 'border-stone-900 bg-stone-100 font-semibold text-stone-900 shadow-xs'
                         : 'border-stone-200 hover:bg-stone-50 text-stone-600'
                     }`}
                   >
                     <Building className="w-4 h-4 mb-1 text-stone-700" />
-                    <span>Latvijas BankLink</span>
+                    <div className="font-semibold text-stone-900">Internetbanka</div>
+                    <div className="text-[11px] text-stone-500">Swedbank · SEB · Citadele</div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('van_pos')}
-                    className={`p-3 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
+                    className={`p-3 rounded-xl border text-left text-xs transition-colors cursor-pointer col-span-2 ${
                       paymentMethod === 'van_pos'
-                        ? 'border-amber-500 bg-amber-50/50 font-semibold text-stone-900 shadow-xs'
+                        ? 'border-stone-900 bg-stone-100 font-semibold text-stone-900 shadow-xs'
                         : 'border-stone-200 hover:bg-stone-50 text-stone-600'
                     }`}
                   >
                     <Truck className="w-4 h-4 mb-1 text-stone-700" />
-                    <span>Maksāt pie busiņa</span>
+                    <div className="font-semibold text-stone-900">Maksāt pie busiņa vai veikalā Rindas ielā 44</div>
+                    <div className="text-[11px] text-stone-500">Ar karti, skaidrā naudā vai vecā riteņa maiņa uz vietas</div>
                   </button>
                 </div>
               </div>
@@ -379,15 +434,144 @@ export const PaymentGatewayModal: React.FC = () => {
                 </div>
               )}
 
+              {/* Inbank Leasing Panel */}
+              {paymentMethod === 'inbank' && (
+                <div className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-stone-900 text-sm">Inbank nomaksa un līzings</span>
+                    <span className="font-mono font-bold text-emerald-700 text-sm tabular-nums">
+                      ~{formatPrice(monthlyInbankEur)} / mēn.
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-stone-600 mb-1.5">Izvēlies atmaksas termiņu:</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[6, 12, 24, 36].map(months => (
+                        <button
+                          key={months}
+                          type="button"
+                          onClick={() => setLeaseTermMonths(months)}
+                          className={`py-2 rounded-lg border font-semibold cursor-pointer transition-colors ${
+                            leaseTermMonths === months
+                              ? 'border-stone-900 bg-stone-900 text-white'
+                              : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'
+                          }`}
+                        >
+                          {months} mēn.
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 pt-2 border-t border-stone-200 cursor-pointer text-stone-800">
+                    <input
+                      type="checkbox"
+                      checked={extraTradeIn}
+                      onChange={(e) => setExtraTradeIn(e.target.checked)}
+                      className="accent-amber-600"
+                    />
+                    <span className="font-medium">Vēlos nodot savu veco riteni kā pirmo iemaksu</span>
+                  </label>
+                  {extraTradeIn && (
+                    <input
+                      type="text"
+                      value={extraTradeInBike}
+                      onChange={(e) => setExtraTradeInBike(e.target.value)}
+                      placeholder="Ieraksti vecā velosipēda modeli un stāvokli..."
+                      className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
+                    />
+                  )}
+                  <p className="text-[11px] text-stone-500">
+                    Līguma parakstīšana ar Smart-ID vai eParaksts aizņem 2 minūtes. Pirmā iemaksa no €0 vai ar veco velosipēdu!
+                  </p>
+                </div>
+              )}
+
+              {/* ESTO Leasing Panel */}
+              {paymentMethod === 'esto' && (
+                <div className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-stone-900 text-sm">ESTO maksājumu plāns</span>
+                    <span className="font-mono font-bold text-amber-700 text-sm tabular-nums">
+                      ~{formatPrice(monthlyEstoEur)} / mēn.
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEstoPlan('esto3')}
+                      className={`p-3 rounded-lg border text-left cursor-pointer ${
+                        estoPlan === 'esto3'
+                          ? 'border-amber-500 bg-white font-semibold text-stone-900 shadow-xs'
+                          : 'border-stone-200 bg-white text-stone-600'
+                      }`}
+                    >
+                      <div className="font-bold">ESTO 3 (0% likme)</div>
+                      <div className="text-[11px] text-stone-500">3 vienādās daļās bez pārmaksas</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEstoPlan('leasing')}
+                      className={`p-3 rounded-lg border text-left cursor-pointer ${
+                        estoPlan === 'leasing'
+                          ? 'border-amber-500 bg-white font-semibold text-stone-900 shadow-xs'
+                          : 'border-stone-200 bg-white text-stone-600'
+                      }`}
+                    >
+                      <div className="font-bold">ESTO nomaksa</div>
+                      <div className="text-[11px] text-stone-500">Līdz 36 mēnešiem</div>
+                    </button>
+                  </div>
+                  {estoPlan === 'leasing' && (
+                    <div className="grid grid-cols-4 gap-2 pt-1">
+                      {[6, 12, 24, 36].map(months => (
+                        <button
+                          key={months}
+                          type="button"
+                          onClick={() => setLeaseTermMonths(months)}
+                          className={`py-2 rounded-lg border font-semibold cursor-pointer ${
+                            leaseTermMonths === months
+                              ? 'border-stone-900 bg-stone-900 text-white'
+                              : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'
+                          }`}
+                        >
+                          {months} mēn.
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <label className="flex items-center gap-2 pt-2 border-t border-stone-200 cursor-pointer text-stone-800">
+                    <input
+                      type="checkbox"
+                      checked={extraTradeIn}
+                      onChange={(e) => setExtraTradeIn(e.target.checked)}
+                      className="accent-amber-600"
+                    />
+                    <span className="font-medium">Ieskaitīt veco riteni kā pirmo iemaksu</span>
+                  </label>
+                  {extraTradeIn && (
+                    <input
+                      type="text"
+                      value={extraTradeInBike}
+                      onChange={(e) => setExtraTradeInBike(e.target.value)}
+                      placeholder="Vecā velosipēda marka / stāvoklis..."
+                      className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
+                    />
+                  )}
+                  <p className="text-[11px] text-stone-500">
+                    Tūlītējs lēmums 60 sekundēs. Piegāde kastē vai samontētam veikalā Rindas ielā 44.
+                  </p>
+                </div>
+              )}
+
               {/* Van POS notice */}
               {paymentMethod === 'van_pos' && (
                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs space-y-1 text-stone-800">
                   <div className="font-bold text-stone-950 flex items-center gap-1.5">
                     <Truck className="w-4 h-4 text-amber-600" />
-                    <span>Apmaksa pie busiņa šofera</span>
+                    <span>Apmaksa pie busiņa šofera vai darbnīcā Rindas ielā 44</span>
                   </div>
                   <p className="leading-relaxed">
-                    Mūsu šoferim līdzi ir bezkontakta POS karšu terminālis. Varēsi norēķināties ar bankas karti, telefonu vai skaidrā naudā pie velosipēda nodošanas/saņemšanas.
+                    Varēsi norēķināties ar bankas karti, telefonu, skaidrā naudā vai nodot savu veco riteni pirmajai iemaksai pie velosipēda saņemšanas.
                   </p>
                 </div>
               )}
@@ -414,11 +598,17 @@ export const PaymentGatewayModal: React.FC = () => {
                 className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md font-heading"
               >
                 {isProcessing ? (
-                  <span>Apstrādā drošo maksājumu...</span>
+                  <span>Apstrādā pieprasījumu...</span>
                 ) : (
                   <>
                     <Lock className="w-4 h-4 text-amber-400" />
-                    <span>Droši apmaksāt ({formatPrice(totalEur)})</span>
+                    <span>
+                      {paymentMethod === 'inbank'
+                        ? `Noformēt ar Inbank (~${formatPrice(monthlyInbankEur)}/mēn.)`
+                        : paymentMethod === 'esto'
+                          ? `Noformēt ar ESTO (~${formatPrice(monthlyEstoEur)}/mēn.)`
+                          : `Droši apmaksāt (${formatPrice(totalEur)})`}
+                    </span>
                   </>
                 )}
               </button>

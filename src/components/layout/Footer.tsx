@@ -60,11 +60,11 @@ export const Footer: React.FC = () => {
             <span className="text-amber-500">Vent</span>Velo
           </div>
           <p className="text-stone-400 text-xs leading-relaxed">
-            Galvenā velosipēdu un e-skrejriteņu darbnīca Ventspilī. Diagnostika, pilnā mezglu pārlasīšana, ratu taisnošana, e-mobilitātes serviss un izbraukuma loģistika Kurzemē.
+            Ventspils velosipēdu darbnīca un salons ar <strong className="text-stone-200">18 gadu pieredzi kopš 2008. gada</strong>. Diagnostika, pilna apkope, maiņas programma (vecais ritenis kā pirmā iemaksa), jauni velo ar Inbank un ESTO līzingu, kā arī izbraukuma buss Kurzemē.
           </p>
           <div className="flex items-center gap-2 pt-2 text-xs text-stone-400">
-            <CreditCard className="w-4 h-4 text-stone-500" />
-            <span>Swedbank · SEB · Citadele · Luminor · Visa · Apple Pay</span>
+            <CreditCard className="w-4 h-4 text-stone-500 shrink-0" />
+            <span>Inbank · ESTO · Swedbank · SEB · Citadele · Luminor · Visa</span>
           </div>
         </div>
 

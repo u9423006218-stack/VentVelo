@@ -122,20 +122,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const formatPrice = (priceEur: number): string => {
     const rateInfo = CURRENCY_RATES[currency] || CURRENCY_RATES.EUR;
-    const converted = priceEur * rateInfo.rate;
+    const converted = Math.round(priceEur * rateInfo.rate);
     
     if (currency === 'EUR') {
-      return `€${converted.toFixed(2)}`;
+      return `€${converted}`;
     } else if (currency === 'USD') {
-      return `$${converted.toFixed(2)}`;
+      return `$${converted}`;
     } else if (currency === 'GBP') {
-      return `£${converted.toFixed(2)}`;
+      return `£${converted}`;
     } else if (currency === 'PLN') {
-      return `${converted.toFixed(2)} zł`;
+      return `${converted} zł`;
     } else if (currency === 'SEK') {
-      return `${Math.round(converted)} kr`;
+      return `${converted} kr`;
     }
-    return `€${priceEur.toFixed(2)}`;
+    return `€${Math.round(priceEur)}`;
   };
 
   const addToCart = (item: Omit<CartItem, 'id'>) => {

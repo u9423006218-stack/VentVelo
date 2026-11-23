@@ -42,23 +42,37 @@ export interface CustomRepairItem {
   estimatedTime: string;
 }
 
+export type BikeCategory =
+  | 'KALNU VELOSIPĒDI (MTB)'
+  | 'GRAVEL VELOSIPĒDI'
+  | 'PILSĒTAS VELOSIPĒDI'
+  | 'BĒRNU VELOSIPĒDI'
+  | 'E-Velosipēdi'
+  | 'Pārbaudīti lietotie';
+
 export interface BikeProduct {
   id: string;
   name: string;
-  category: 'Gravel & Road' | 'City & Commuter' | 'E-Bikes' | 'Kids & Junior' | 'Pre-Owned Certified';
+  brand: string;
+  category: BikeCategory;
   priceEur: number;
   originalPriceEur?: number;
   image: string;
   frameMaterial: string;
+  frameMaterialShort: 'Alumīnijs' | 'Oglekļa šķiedra (Carbon)';
+  suspension: 'Priekšējais amortizators (Hardtail)' | 'Cietā dakša (Rigid)';
+  brakeType: 'Hidrauliskās disku' | 'Mehāniskās disku' | 'V-veida un kājas bremze';
   groupset: string;
   brakes: string;
   sizesAvailable: string[];
   inStockCount: number;
+  availabilityStatus: 'Noliktavā Rindas 44' | 'Piegāde 2–3 d.d.';
   guaranteeMonths: number;
   condition: 'Brand New' | 'Certified Refurbished';
   specs: {
     weightKg: number;
     wheelSize: string;
+    wheelSizeCategory: '20"' | '24"' | '27.5"' | '28" / 700c' | '29"';
     gears: number;
     color: string;
   };

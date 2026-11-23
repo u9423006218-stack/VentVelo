@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { SERVICE_PACKAGES, CUSTOM_REPAIR_ITEMS, VAN_PICKUP_ZONES, WORKSHOP_BRANCHES } from '../../data/mockData';
+import { SERVICE_PACKAGES, CUSTOM_REPAIR_ITEMS, VAN_PICKUP_ZONES, WORKSHOP_BRANCHES, BIKES_FOR_SALE } from '../../data/mockData';
 import { 
   Check, 
   Wrench, 
@@ -11,7 +11,9 @@ import {
   Search, 
   ArrowRight, 
   Sparkles,
-  PhoneCall
+  PhoneCall,
+  CreditCard,
+  RefreshCw
 } from 'lucide-react';
 import heroWorkshopImg from '../../assets/images/hero_bicycle_workshop_1794340029993.jpg';
 import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340031954.jpg';
@@ -45,21 +47,136 @@ export const ServiceCatalog: React.FC = () => {
   return (
     <div className="space-y-16 py-8">
       
-      {/* Hero Section */}
+      {/* Featured Bikes For Sale Preview Section — First & Highly Visible Right on Home Page */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="bg-stone-950 text-white rounded-2xl p-6 sm:p-10 border-2 border-amber-500/70 shadow-xl space-y-8">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
+                <span>Salons Rindas ielā 44 un tiešsaistes veikals · 18 gadu pieredze</span>
+              </div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white font-heading">
+                Velosipēdi pārdošanā
+              </h1>
+              <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
+                Kalnu (MTB), Gravel, pilsētas un bērnu velosipēdi. Pasūti oriģinālajā kastē pašmontāžai (€0, bez garantijas) vai par <strong className="text-amber-400">+€35 saņem pilnībā meistara saliktu ar garantiju</strong>. Nodod savu veco riteni kā pirmo iemaksu!
+              </p>
+            </div>
+
+            <button
+              onClick={() => setActiveTab('bikes')}
+              className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer shrink-0"
+            >
+              <span>Atvērt visu velosipēdu katalogu</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* 4 Bicycle Preview Photo Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              BIKES_FOR_SALE[0], // MTB DRAG Hardy 3.0
+              BIKES_FOR_SALE[3], // Gravel DRAG Sterrato 3.0
+              BIKES_FOR_SALE[6], // City DRAG Grand Canyon
+              BIKES_FOR_SALE[9], // Kids DRAG Hardy Jr. 20"
+            ]
+              .filter(Boolean)
+              .map((bike) => (
+                <div
+                  key={bike.id}
+                  onClick={() => setActiveTab('bikes')}
+                  className="group bg-stone-900 border border-stone-800 hover:border-amber-400 rounded-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all hover:-translate-y-0.5"
+                >
+                  <div>
+                    <div className="aspect-4/3 bg-stone-800 overflow-hidden relative">
+                      <img
+                        src={bike.image}
+                        alt={bike.name}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute bottom-2.5 left-2.5 bg-stone-950/85 text-amber-400 text-[11px] font-bold px-2.5 py-0.5 rounded border border-stone-700">
+                        {bike.category}
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-1.5">
+                      <div className="text-[11px] text-stone-400 font-medium">{bike.brand} · {bike.specs.wheelSizeCategory}</div>
+                      <h3 className="font-bold text-white text-sm leading-snug group-hover:text-amber-400 transition-colors">
+                        {bike.name}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="px-4 pb-4 pt-2 border-t border-stone-800/80 flex items-baseline justify-between gap-2">
+                    <div>
+                      <span className="text-xl font-bold text-white font-mono tabular-nums">
+                        {formatPrice(bike.priceEur)}
+                      </span>
+                      {bike.originalPriceEur && (
+                        <span className="text-xs text-stone-500 line-through font-mono ml-2 tabular-nums">
+                          {formatPrice(bike.originalPriceEur)}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] font-semibold text-emerald-400 tabular-nums">
+                      no {formatPrice(Math.max(12, Math.round(bike.priceEur / 24)))}/mēn.
+                    </span>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* Highlighted Inbank, ESTO & Trade-in Strip right under Bike Previews */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div className="bg-emerald-950/90 border border-emerald-700/70 rounded-xl p-4 flex items-start gap-3">
+              <CreditCard className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <div className="font-bold text-white text-sm">Inbank Līzings · no 6–36 mēn.</div>
+                <p className="text-emerald-100/80 leading-relaxed">
+                  Lēmums 2 minūtēs ar Smart-ID. Pirmā iemaksa no €0 vai ar vecā riteņa nodošanu.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-amber-500 text-stone-950 rounded-xl p-4 flex items-start gap-3">
+              <CreditCard className="w-5 h-5 text-stone-900 shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <div className="font-bold text-stone-950 text-sm">ESTO 3 (0% likme) un Nomaksa</div>
+                <p className="text-stone-900/90 leading-relaxed">
+                  Sadali cenu 3 daļās bez procentiem (€0 pārmaksa) vai izvēlies ESTO līdz 36 mēnešiem.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-stone-900 border border-stone-700 rounded-xl p-4 flex items-start gap-3">
+              <RefreshCw className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <div className="font-bold text-white text-sm">Vecais ritenis kā pirmā iemaksa</div>
+                <p className="text-stone-300 leading-relaxed">
+                  Samaini esošo velosipēdu pret jaunu un saņem montāžu ar garantiju tikai par +€35.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Workshop & Service Van Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-stone-900 rounded-2xl overflow-hidden border border-stone-800 shadow-xl">
           <div className="lg:col-span-7 p-8 sm:p-12 lg:p-14 space-y-6">
             <div className="inline-flex items-center gap-2 text-xs font-semibold text-amber-400 bg-amber-950/60 border border-amber-800/60 px-3 py-1 rounded-md">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Vadošā velodarbnīca un izbraukuma serviss Kurzemē</span>
+              <span>Jau 18 gadus Kurzemē · Veloserviss un salons Ventspilī</span>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-[1.15] font-heading">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-[1.15] font-heading">
               Meistara roku darbs un servisa buss līdz namdurvīm.
-            </h1>
+            </h2>
 
             <p className="text-stone-300 text-base sm:text-lg leading-relaxed max-w-2xl">
-              No precīzas ratu spieķošanas un taisnošanas līdz 100% pilnai rāmja pārlasīšanai (<em>kapitālajam remontam</em>) un e-skrejriteņu elektronikai. Paņemam un atvedam Tavu ričuku <strong className="text-white">Ventspilī, Usmā un Talsos</strong>.
+              VentVelo darbojas jau <strong className="text-white">18 gadus</strong> – no precīzas ratu spieķošanas un pilnas rāmja pārlasīšanas līdz jaunu kalnu, gravel, pilsētas un bērnu velosipēdu tirdzniecībai ar garantiju. Paņemam un atvedam Tavu ričuku <strong className="text-white">Ventspilī, Usmā un Talsos</strong>.
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-4">
@@ -73,9 +190,10 @@ export const ServiceCatalog: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('bikes')}
-                className="px-6 py-3.5 bg-stone-800 hover:bg-stone-700 text-stone-100 font-medium rounded-lg transition-colors text-sm border border-stone-700 cursor-pointer"
+                className="px-6 py-3.5 bg-white hover:bg-stone-100 text-stone-950 font-bold rounded-lg transition-colors text-sm border-2 border-amber-400 shadow-lg flex items-center gap-2 cursor-pointer"
               >
-                Velosipēdi pārdošanā
+                <span>Velosipēdi pārdošanā (no €248)</span>
+                <ArrowRight className="w-4 h-4 text-amber-600" />
               </button>
             </div>
 
@@ -120,7 +238,7 @@ export const ServiceCatalog: React.FC = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent lg:bg-gradient-to-r lg:from-stone-900 lg:via-transparent lg:to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 bg-stone-950/90 backdrop-blur-md border border-stone-800 p-3 rounded-lg text-xs text-stone-300">
-              <span className="font-semibold text-stone-100">Rindas iela 44:</span> Sertificēti Park Tool remonta statīvi un ultraskaņas vannas.
+              <span className="font-semibold text-stone-100">Rindas iela 44, Ventspils</span> · Velodarbnīca un salons
             </div>
           </div>
         </div>
