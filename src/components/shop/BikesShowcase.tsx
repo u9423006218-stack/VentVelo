@@ -19,6 +19,9 @@ import catMtbImg from '../../assets/images/cat_mtb_bike_1795451175318.jpg';
 import catGravelImg from '../../assets/images/cat_gravel_bike_1795451176389.jpg';
 import catCityImg from '../../assets/images/cat_city_bike_1795451176543.jpg';
 import catKidsImg from '../../assets/images/cat_kids_bike_1795451176116.jpg';
+import storeGravelImg from '../../assets/images/store_curated_gravel_bike_1794340032744.jpg';
+import heroWorkshopImg from '../../assets/images/hero_bicycle_workshop_1794340029993.jpg';
+import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340031954.jpg';
 
 type FilterDropdownKey =
   | 'category'
@@ -95,27 +98,69 @@ export const BikesShowcase: React.FC = () => {
   const mainCategories = [
     {
       id: 'KALNU VELOSIPĒDI (MTB)',
-      title: 'KALNU VELOSIPĒDI (MTB)',
-      subtitle: 'DRAG Hardy, Fuji Nevada · 27.5" un 29"',
+      title: 'Kalnu (MTB)',
+      subtitle: 'DRAG Hardy, Storm, Fuji Nevada · 27.5" / 29"',
       image: catMtbImg,
     },
     {
       id: 'GRAVEL VELOSIPĒDI',
-      title: 'GRAVEL VELOSIPĒDI',
+      title: 'Gravel',
       subtitle: 'DRAG Sterrato, VentVelo Baltic · GRX / Claris',
       image: catGravelImg,
     },
     {
+      id: 'ŠOSEJAS VELOSIPĒDI',
+      title: 'Šosejas',
+      subtitle: 'DRAG Master, Bianchi Via Nirone · Sora',
+      image: storeGravelImg,
+    },
+    {
       id: 'PILSĒTAS VELOSIPĒDI',
-      title: 'PILSĒTAS VELOSIPĒDI',
-      subtitle: 'DRAG Grand Canyon, Cruiser, Urban CDX',
+      title: 'Pilsētas',
+      subtitle: 'DRAG, Adriatica Cruiser, VentVelo Urban',
+      image: catCityImg,
+    },
+    {
+      id: 'HIBRĪDA UN TŪRISMA VELOSIPĒDI',
+      title: 'Hibrīda un tūrisma',
+      subtitle: 'DRAG Grand Canyon, Adriatica Panda',
       image: catCityImg,
     },
     {
       id: 'BĒRNU VELOSIPĒDI',
-      title: 'BĒRNU VELOSIPĒDI',
-      subtitle: 'DRAG Hardy Jr, Yuki, Adriatica · 20" un 24"',
+      title: 'Bērnu un jauniešu',
+      subtitle: '12" balanss, 16", 20" un 24" · DRAG, Adriatica',
       image: catKidsImg,
+    },
+    {
+      id: 'BMX VELOSIPĒDI',
+      title: 'BMX',
+      subtitle: 'DRAG Decade, Radio Dice, SE Blocks 20"/26"',
+      image: heroWorkshopImg,
+    },
+    {
+      id: 'FATBIKE VELOSIPĒDI',
+      title: 'Fatbike',
+      subtitle: 'DRAG DXT, VentVelo Dune · 26"x4.0–4.8"',
+      image: catMtbImg,
+    },
+    {
+      id: 'SALIEKAMIE VELOSIPĒDI',
+      title: 'Saliekamie',
+      subtitle: 'Adriatica Smile, DRAG Compact · 20"',
+      image: serviceVanImg,
+    },
+    {
+      id: 'E-Velosipēdi',
+      title: 'E-Velosipēdi',
+      subtitle: 'Bianchi T-Tronic, Adriatica, VentVelo Bosch',
+      image: storeGravelImg,
+    },
+    {
+      id: 'Pārbaudīti lietotie',
+      title: 'Pārbaudīti lietotie',
+      subtitle: 'Darbnīcā pārlasīti ar 12 mēn. garantiju',
+      image: heroWorkshopImg,
     },
   ];
 
@@ -162,9 +207,10 @@ export const BikesShowcase: React.FC = () => {
       if (selectedBrakeType !== 'Visi' && bike.brakeType !== selectedBrakeType) return false;
 
       if (selectedGears !== 'Visi') {
-        if (selectedGears === 'Līdz 8 ātrumiem' && bike.specs.gears > 8) return false;
+        if (selectedGears === '1 ātrums (BMX / Balanss)' && bike.specs.gears > 1) return false;
+        if (selectedGears === '3–8 ātrumi' && (bike.specs.gears < 3 || bike.specs.gears > 8)) return false;
         if (selectedGears === '9–16 ātrumi' && (bike.specs.gears < 9 || bike.specs.gears > 16)) return false;
-        if (selectedGears === '18–24 ātrumi' && bike.specs.gears < 18) return false;
+        if (selectedGears === '18–27 ātrumi' && bike.specs.gears < 18) return false;
       }
 
       if (selectedPriceRange !== 'Visi') {
@@ -283,8 +329,13 @@ export const BikesShowcase: React.FC = () => {
         'Visi',
         'KALNU VELOSIPĒDI (MTB)',
         'GRAVEL VELOSIPĒDI',
+        'ŠOSEJAS VELOSIPĒDI',
         'PILSĒTAS VELOSIPĒDI',
+        'HIBRĪDA UN TŪRISMA VELOSIPĒDI',
         'BĒRNU VELOSIPĒDI',
+        'BMX VELOSIPĒDI',
+        'FATBIKE VELOSIPĒDI',
+        'SALIEKAMIE VELOSIPĒDI',
         'E-Velosipēdi',
         'Pārbaudīti lietotie',
       ],
@@ -294,7 +345,7 @@ export const BikesShowcase: React.FC = () => {
       label: 'Rāmja izmērs',
       value: selectedSizeFilter,
       onChange: setSelectedSizeFilter,
-      options: ['Visi', 'XS', 'S', 'M', 'L', 'XL', '20"', '24"'],
+      options: ['Visi', '12"', '16"', '20"', '24"', '26"', 'XS', 'S', 'M', 'L', 'XL', 'One Size'],
     },
     {
       key: 'availability',
@@ -308,7 +359,7 @@ export const BikesShowcase: React.FC = () => {
       label: 'Zīmols',
       value: selectedBrand,
       onChange: setSelectedBrand,
-      options: ['Visi', 'DRAG', 'Fuji', 'Adriatica', 'VentVelo', 'Specialized'],
+      options: ['Visi', 'DRAG', 'Fuji', 'Adriatica', 'Bianchi', 'Radio', 'SE Bikes', 'VentVelo', 'Specialized'],
     },
     {
       key: 'suspension',
@@ -322,28 +373,28 @@ export const BikesShowcase: React.FC = () => {
       label: 'Rāmja materiāls',
       value: selectedMaterial,
       onChange: setSelectedMaterial,
-      options: ['Visi', 'Alumīnijs', 'Oglekļa šķiedra (Carbon)'],
+      options: ['Visi', 'Alumīnijs', 'Oglekļa šķiedra (Carbon)', 'Tērauds (Hi-Ten / Cr-Mo)'],
     },
     {
       key: 'gears',
       label: 'Ātrumu skaits',
       value: selectedGears,
       onChange: setSelectedGears,
-      options: ['Visi', 'Līdz 8 ātrumiem', '9–16 ātrumi', '18–24 ātrumi'],
+      options: ['Visi', '1 ātrums (BMX / Balanss)', '3–8 ātrumi', '9–16 ātrumi', '18–27 ātrumi'],
     },
     {
       key: 'wheelSize',
       label: 'Ratu izmērs',
       value: selectedWheelSize,
       onChange: setSelectedWheelSize,
-      options: ['Visi', '20"', '24"', '27.5"', '28" / 700c', '29"'],
+      options: ['Visi', '12" / 16"', '20"', '24"', '26"', '27.5"', '28" / 700c', '29"'],
     },
     {
       key: 'brakes',
       label: 'Bremžu tips',
       value: selectedBrakeType,
       onChange: setSelectedBrakeType,
-      options: ['Visi', 'Hidrauliskās disku', 'Mehāniskās disku', 'V-veida un kājas bremze'],
+      options: ['Visi', 'Hidrauliskās disku', 'Mehāniskās disku', 'V-veida un kājas bremze', 'Šosejas / BMX bremzes'],
     },
     {
       key: 'price',
@@ -356,45 +407,54 @@ export const BikesShowcase: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
-      {/* 4 Main Category Showcase Cards — Placed at the very top */}
+      {/* All Bicycle Category Showcase Cards — Placed at the very top */}
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-stone-900 font-heading">Velosipēdu kategorijas</h1>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-stone-900 font-heading">Velosipēdu kategorijas</h1>
+            <p className="text-xs text-stone-500 mt-0.5">
+              Visi {BIKES_FOR_SALE.length} modeļi no kalnu un gravel līdz BMX, fatbike un E-velosipēdiem
+            </p>
+          </div>
           {selectedCategory !== 'Visi' && (
             <button
               onClick={() => setSelectedCategory('Visi')}
               className="text-xs font-semibold text-amber-700 hover:text-amber-800 cursor-pointer shrink-0"
             >
-              Skatīt visus velosipēdus
+              Skatīt visus ({BIKES_FOR_SALE.length})
             </button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3.5">
           {mainCategories.map((cat) => {
             const isActive = selectedCategory === cat.id;
+            const catCount = BIKES_FOR_SALE.filter((b) => b.category === cat.id).length;
             return (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => handleCategoryTileClick(cat.id)}
-                className={`group text-left bg-white rounded-xl overflow-hidden border transition-all cursor-pointer ${
+                className={`group text-left bg-white rounded-xl overflow-hidden border transition-all cursor-pointer flex flex-col ${
                   isActive
                     ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-md'
                     : 'border-stone-200 hover:border-stone-300 shadow-xs hover:shadow-md'
                 }`}
               >
-                <div className="aspect-4/3 bg-stone-100 overflow-hidden">
+                <div className="aspect-4/3 bg-stone-100 overflow-hidden relative">
                   <img
                     src={cat.image}
                     alt={cat.title}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
                   />
+                  <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-stone-900/80 text-white text-[10px] font-bold tabular-nums">
+                    {catCount}
+                  </span>
                 </div>
-                <div className="p-3.5 text-center space-y-1">
+                <div className="p-2.5 sm:p-3 text-center space-y-0.5 flex-1 flex flex-col justify-center">
                   <div
-                    className={`text-sm font-bold tracking-tight font-heading ${
+                    className={`text-xs sm:text-sm font-bold tracking-tight font-heading leading-tight ${
                       isActive ? 'text-amber-700' : 'text-stone-800 group-hover:text-stone-950'
                     }`}
                   >
@@ -419,7 +479,7 @@ export const BikesShowcase: React.FC = () => {
               Velosipēdu salons un katalogs ar garantiju
             </h2>
             <p className="text-stone-300 text-sm leading-relaxed">
-              Kalnu (MTB), Gravel, pilsētas un bērnu velosipēdi ar 18 gadu servisa pieredzi. Izvēlies pasūtīt riteni oriģinālajā kastē vai uztici meistaram pilnu montāžu ar oficiālu garantiju par €35.
+              Kalnu (MTB), Gravel, šosejas, pilsētas, hibrīda, bērnu, BMX, Fatbike, saliekamie un E-velosipēdi ar 18 gadu servisa pieredzi. Izvēlies pasūtīt riteni oriģinālajā kastē vai uztici meistaram pilnu montāžu ar oficiālu garantiju par €35.
             </p>
           </div>
 
@@ -557,7 +617,7 @@ export const BikesShowcase: React.FC = () => {
                   </button>
 
                   {isOpen && (
-                    <div className="absolute left-0 top-full mt-1.5 z-30 min-w-[210px] max-w-[85vw] bg-white border border-stone-200 rounded-xl shadow-xl p-1.5 space-y-0.5">
+                    <div className="absolute left-0 top-full mt-1.5 z-30 min-w-[220px] max-w-[85vw] max-h-72 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-xl p-1.5 space-y-0.5">
                       {cfg.options.map((opt) => (
                         <button
                           key={opt}

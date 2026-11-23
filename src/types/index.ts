@@ -45,8 +45,13 @@ export interface CustomRepairItem {
 export type BikeCategory =
   | 'KALNU VELOSIPĒDI (MTB)'
   | 'GRAVEL VELOSIPĒDI'
+  | 'ŠOSEJAS VELOSIPĒDI'
   | 'PILSĒTAS VELOSIPĒDI'
+  | 'HIBRĪDA UN TŪRISMA VELOSIPĒDI'
   | 'BĒRNU VELOSIPĒDI'
+  | 'BMX VELOSIPĒDI'
+  | 'FATBIKE VELOSIPĒDI'
+  | 'SALIEKAMIE VELOSIPĒDI'
   | 'E-Velosipēdi'
   | 'Pārbaudīti lietotie';
 
@@ -59,9 +64,9 @@ export interface BikeProduct {
   originalPriceEur?: number;
   image: string;
   frameMaterial: string;
-  frameMaterialShort: 'Alumīnijs' | 'Oglekļa šķiedra (Carbon)';
+  frameMaterialShort: 'Alumīnijs' | 'Oglekļa šķiedra (Carbon)' | 'Tērauds (Hi-Ten / Cr-Mo)';
   suspension: 'Priekšējais amortizators (Hardtail)' | 'Cietā dakša (Rigid)';
-  brakeType: 'Hidrauliskās disku' | 'Mehāniskās disku' | 'V-veida un kājas bremze';
+  brakeType: 'Hidrauliskās disku' | 'Mehāniskās disku' | 'V-veida un kājas bremze' | 'Šosejas / BMX bremzes';
   groupset: string;
   brakes: string;
   sizesAvailable: string[];
@@ -72,7 +77,7 @@ export interface BikeProduct {
   specs: {
     weightKg: number;
     wheelSize: string;
-    wheelSizeCategory: '20"' | '24"' | '27.5"' | '28" / 700c' | '29"';
+    wheelSizeCategory: '12" / 16"' | '20"' | '24"' | '26"' | '27.5"' | '28" / 700c' | '29"';
     gears: number;
     color: string;
   };

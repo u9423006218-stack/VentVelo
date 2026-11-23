@@ -60,7 +60,7 @@ export const ServiceCatalog: React.FC = () => {
                 Velosipēdi pārdošanā
               </h1>
               <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-                Kalnu (MTB), Gravel, pilsētas un bērnu velosipēdi. Pasūti oriģinālajā kastē pašmontāžai (€0, bez garantijas) vai par <strong className="text-amber-400">+€35 saņem pilnībā meistara saliktu ar garantiju</strong>. Nodod savu veco riteni kā pirmo iemaksu!
+                Kalnu (MTB), Gravel, šosejas, pilsētas, hibrīda, BMX, Fatbike, saliekamie, bērnu un E-velosipēdi. Pasūti oriģinālajā kastē pašmontāžai (€0, bez garantijas) vai par <strong className="text-amber-400">+€35 saņem pilnībā meistara saliktu ar garantiju</strong>. Nodod savu veco riteni kā pirmo iemaksu!
               </p>
             </div>
 
@@ -76,12 +76,13 @@ export const ServiceCatalog: React.FC = () => {
           {/* 4 Bicycle Preview Photo Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              BIKES_FOR_SALE[0], // MTB DRAG Hardy 3.0
-              BIKES_FOR_SALE[3], // Gravel DRAG Sterrato 3.0
-              BIKES_FOR_SALE[6], // City DRAG Grand Canyon
-              BIKES_FOR_SALE[9], // Kids DRAG Hardy Jr. 20"
+              'bike_mtb_drag_hardy3',
+              'bike_gravel_drag_sterrato3',
+              'bike_city_drag_grand_canyon',
+              'bike_kids_drag_hardy20',
             ]
-              .filter(Boolean)
+              .map((id) => BIKES_FOR_SALE.find((b) => b.id === id))
+              .filter((b): b is NonNullable<typeof b> => Boolean(b))
               .map((bike) => (
                 <div
                   key={bike.id}
