@@ -18,3 +18,23 @@ body {
 h1, h2, h3, h4, .font-heading {
   font-family: "Outfit", sans-serif;
 }
+
+@keyframes ventvelo-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ventvelo-marquee {
+  display: flex;
+  width: max-content;
+  animation: ventvelo-marquee 42s linear infinite;
+  will-change: transform;
+}
+
+.animate-ventvelo-marquee:hover {
+  animation-play-state: paused;
+}

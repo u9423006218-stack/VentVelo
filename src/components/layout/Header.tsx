@@ -31,19 +31,47 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200">
-      {/* Top Announcement Bar */}
-      <div className="bg-stone-900 text-stone-200 px-3 sm:px-4 py-1.5 text-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 overflow-hidden">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 overflow-hidden">
-            <Truck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="font-semibold text-amber-300 shrink-0">Izbraukuma servisa buss:</span>
-            <span className="text-stone-300 truncate">Savācam un atvedam velosipēdu Ventspilī, Usmā un Talsos tieši pie durvīm</span>
+      {/* Top Scrolling Marquee Announcement Bar */}
+      <div className="bg-stone-900 text-stone-200 px-3 sm:px-4 py-1.5 text-xs overflow-hidden">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-hidden">
+          <div className="flex-1 min-w-0 overflow-hidden relative">
+            <div className="animate-ventvelo-marquee items-center">
+              {[0, 1].map((dup) => (
+                <div key={dup} className="flex items-center gap-6 pr-6 whitespace-nowrap shrink-0" aria-hidden={dup === 1}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <strong className="text-amber-300">Izbraukuma servisa buss:</strong>
+                    <span>Savācam un atvedam velosipēdu Ventspilī, Usmā un Talsos tieši pie durvīm</span>
+                  </span>
+                  <span className="text-amber-500">•</span>
+                  <span>
+                    <strong className="text-amber-300">Velosipēdu Salons Rindas ielā 44</strong> un tiešsaistes veikals ar 18 gadu pieredzi
+                  </span>
+                  <span className="text-amber-500">•</span>
+                  <span>
+                    <strong className="text-amber-300">Velosipēdi pārdošanā:</strong> MTB, Gravel, pilsētas un bērnu — kastē (€0) vai meistara salikti ar garantiju (+€35)
+                  </span>
+                  <span className="text-amber-500">•</span>
+                  <span>
+                    <strong className="text-amber-300">Inbank un ESTO līzings (0% ESTO 3)</strong> + vecais ritenis kā pirmā iemaksa
+                  </span>
+                  <span className="text-amber-500">•</span>
+                  <span>
+                    <strong className="text-amber-300">Velosipēdu noma no €5</strong> (ķivere un slēdzene bez maksas)
+                  </span>
+                  <span className="text-amber-500">•</span>
+                  <span>
+                    Meistars <strong className="text-amber-300">Raivis</strong>: +371 27583888 · melnakmens@gmail.com
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="hidden sm:flex items-center gap-4 shrink-0 text-stone-400">
-            <span>Darbnīca: Rindas iela 44, Ventspils</span>
+
+          <div className="hidden lg:flex items-center gap-3 shrink-0 text-stone-400 pl-2 border-l border-stone-700/80">
             <button 
               onClick={() => setIsSecurityModalOpen(true)}
-              className="hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
+              className="hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Droši norēķini un GDPR</span>
