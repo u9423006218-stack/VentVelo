@@ -81,6 +81,11 @@ export interface BikeProduct {
     gears: number;
     color: string;
   };
+  specsList?: { label: string; value: string }[];
+  year?: string;
+  riderType?: 'Vīriešu' | 'Sieviešu' | 'Unisex';
+  sku?: string;
+  descriptionText?: string;
   features: string[];
   inspectionPassed: boolean;
 }

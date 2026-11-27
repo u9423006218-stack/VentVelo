@@ -90,7 +90,7 @@ export const SupportChat: React.FC = () => {
 
     if (q.includes('vec') || q.includes('iemaks') || q.includes('maiņ') || q.includes('novērt')) {
       return {
-        text: 'Jā! Savu veco velosipēdu vari atdot mums kā pirmo iemaksu jaunā riteņa iegādei. Rindas ielā 44 novērtēsim tā stāvokli 15 minūšu laikā un uzreiz samazināsim jaunā DRAG, Fuji vai Adriatica riteņa cenu vai pirmo iemaksu līzingā.',
+        text: 'Jā! Savu veco velosipēdu vari atdot mums kā pirmo iemaksu jaunā riteņa iegādei. Rindas ielā 44 novērtēsim tā stāvokli 15 minūšu laikā un uzreiz samazināsim jaunā Raymon, Unibike, Romet, Tabou vai Ecobike riteņa cenu vai pirmo iemaksu līzingā.',
         quickReplies: ['Skatīt velosipēdus', 'Inbank un ESTO līzings'],
       };
     }

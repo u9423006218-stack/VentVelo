@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { BIKES_FOR_SALE } from '../../data/mockData';
-import { BikeProduct } from '../../types';
+import { BikeCategory, BikeProduct } from '../../types';
 import {
   ShieldCheck,
   Check,
@@ -9,11 +9,14 @@ import {
   Truck,
   Wrench,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   RotateCcw,
   Package,
   RefreshCw,
   Award,
   CreditCard,
+  Search,
 } from 'lucide-react';
 import catMtbImg from '../../assets/images/cat_mtb_bike_1795451175318.jpg';
 import catGravelImg from '../../assets/images/cat_gravel_bike_1795451176389.jpg';
@@ -25,9 +28,10 @@ import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340
 
 type FilterDropdownKey =
   | 'category'
+  | 'brand'
+  | 'riderType'
   | 'size'
   | 'availability'
-  | 'brand'
   | 'suspension'
   | 'material'
   | 'gears'
@@ -35,21 +39,89 @@ type FilterDropdownKey =
   | 'brakes'
   | 'price';
 
+const PAGE_SIZE = 24;
+
+const FEATURED_CATEGORY_ORDER: BikeCategory[] = [
+  'GRAVEL VELOSIPĒDI',
+  'E-Velosipēdi',
+  'KALNU VELOSIPĒDI (MTB)',
+  'HIBRĪDA UN TŪRISMA VELOSIPĒDI',
+  'PILSĒTAS VELOSIPĒDI',
+  'BĒRNU VELOSIPĒDI',
+  'SALIEKAMIE VELOSIPĒDI',
+  'BMX VELOSIPĒDI',
+  'FATBIKE VELOSIPĒDI',
+  'ŠOSEJAS VELOSIPĒDI',
+  'Pārbaudīti lietotie',
+];
+
+function interleaveFeatured(bikes: BikeProduct[]): BikeProduct[] {
+  const buckets = new Map<BikeCategory, BikeProduct[]>();
+  for (const cat of FEATURED_CATEGORY_ORDER) {
+    buckets.set(cat, []);
+  }
+  for (const b of bikes) {
+    const arr = buckets.get(b.category);
+    if (arr) {
+      arr.push(b);
+    } else {
+      buckets.set(b.category, [b]);
+    }
+  }
+  // Sort each bucket with flagship/newer higher-spec or well-stocked items first
+  for (const arr of buckets.values()) {
+    arr.sort((a, b) => {
+      const aYear = parseInt(a.year || '0', 10);
+      const bYear = parseInt(b.year || '0', 10);
+      if (bYear !== aYear) return bYear - aYear;
+      return b.inStockCount - a.inStockCount;
+    });
+  }
+
+  const result: BikeProduct[] = [];
+  let remaining = true;
+  while (remaining) {
+    remaining = false;
+    for (const cat of FEATURED_CATEGORY_ORDER) {
+      const bucket = buckets.get(cat);
+      if (bucket && bucket.length > 0) {
+        const next = bucket.shift();
+        if (next) result.push(next);
+        if (bucket.length > 0) remaining = true;
+      }
+    }
+  }
+  return result;
+}
+
+function matchesSizeFilter(sizes: string[], filterVal: string): boolean {
+  if (filterVal === 'Visi') return true;
+  if (/^(XS|S|M|L|XL)$/i.test(filterVal)) {
+    const re = new RegExp(`\\b${filterVal}\\b`, 'i');
+    return sizes.some((s) => re.test(s));
+  }
+  const lower = filterVal.toLowerCase();
+  return sizes.some((s) => s.toLowerCase().includes(lower));
+}
+
 export const BikesShowcase: React.FC = () => {
   const { formatPrice, openCheckout, addToCart } = useApp();
 
-  // Filter states matching veloprofs.lv style adapted for VentVelo
+  // Filter & Search states
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Visi');
+  const [selectedBrand, setSelectedBrand] = useState<string>('Visi');
+  const [selectedRiderType, setSelectedRiderType] = useState<string>('Visi');
   const [selectedSizeFilter, setSelectedSizeFilter] = useState<string>('Visi');
   const [selectedAvailability, setSelectedAvailability] = useState<string>('Visi');
-  const [selectedBrand, setSelectedBrand] = useState<string>('Visi');
   const [selectedSuspension, setSelectedSuspension] = useState<string>('Visi');
   const [selectedMaterial, setSelectedMaterial] = useState<string>('Visi');
   const [selectedGears, setSelectedGears] = useState<string>('Visi');
   const [selectedWheelSize, setSelectedWheelSize] = useState<string>('Visi');
   const [selectedBrakeType, setSelectedBrakeType] = useState<string>('Visi');
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('Visi');
-  const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'name'>('price_asc');
+  const [sortBy, setSortBy] = useState<'featured' | 'price_asc' | 'price_desc' | 'name'>('featured');
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const [openDropdown, setOpenDropdown] = useState<FilterDropdownKey | null>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
@@ -95,80 +167,125 @@ export const BikesShowcase: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const mainCategories = [
+  // Reset pagination whenever filters/search/sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchQuery,
+    selectedCategory,
+    selectedBrand,
+    selectedRiderType,
+    selectedSizeFilter,
+    selectedAvailability,
+    selectedSuspension,
+    selectedMaterial,
+    selectedGears,
+    selectedWheelSize,
+    selectedBrakeType,
+    selectedPriceRange,
+    sortBy,
+  ]);
+
+  const rawCategoryDefs: {
+    id: BikeCategory;
+    title: string;
+    subtitle: string;
+    fallbackImage: string;
+  }[] = [
     {
       id: 'KALNU VELOSIPĒDI (MTB)',
       title: 'Kalnu (MTB)',
-      subtitle: 'DRAG Hardy, Storm, Fuji Nevada · 27.5" / 29"',
-      image: catMtbImg,
+      subtitle: 'Raymon, Unibike, Tabou, Romet · 26"–29"',
+      fallbackImage: catMtbImg,
     },
     {
       id: 'GRAVEL VELOSIPĒDI',
       title: 'Gravel',
-      subtitle: 'DRAG Sterrato, VentVelo Baltic · GRX / Claris',
-      image: catGravelImg,
-    },
-    {
-      id: 'ŠOSEJAS VELOSIPĒDI',
-      title: 'Šosejas',
-      subtitle: 'DRAG Master, Bianchi Via Nirone · Sora',
-      image: storeGravelImg,
-    },
-    {
-      id: 'PILSĒTAS VELOSIPĒDI',
-      title: 'Pilsētas',
-      subtitle: 'DRAG, Adriatica Cruiser, VentVelo Urban',
-      image: catCityImg,
+      subtitle: 'Raymon Territ / Soreno, Tabou Gravo',
+      fallbackImage: catGravelImg,
     },
     {
       id: 'HIBRĪDA UN TŪRISMA VELOSIPĒDI',
       title: 'Hibrīda un tūrisma',
-      subtitle: 'DRAG Grand Canyon, Adriatica Panda',
-      image: catCityImg,
+      subtitle: 'Unibike, Raymon, Tabou, Romet',
+      fallbackImage: catCityImg,
     },
     {
-      id: 'BĒRNU VELOSIPĒDI',
-      title: 'Bērnu un jauniešu',
-      subtitle: '12" balanss, 16", 20" un 24" · DRAG, Adriatica',
-      image: catKidsImg,
-    },
-    {
-      id: 'BMX VELOSIPĒDI',
-      title: 'BMX',
-      subtitle: 'DRAG Decade, Radio Dice, SE Blocks 20"/26"',
-      image: heroWorkshopImg,
-    },
-    {
-      id: 'FATBIKE VELOSIPĒDI',
-      title: 'Fatbike',
-      subtitle: 'DRAG DXT, VentVelo Dune · 26"x4.0–4.8"',
-      image: catMtbImg,
-    },
-    {
-      id: 'SALIEKAMIE VELOSIPĒDI',
-      title: 'Saliekamie',
-      subtitle: 'Adriatica Smile, DRAG Compact · 20"',
-      image: serviceVanImg,
+      id: 'PILSĒTAS VELOSIPĒDI',
+      title: 'Pilsētas',
+      subtitle: 'Tabou, Romet, Azimut · Komforts un grozi',
+      fallbackImage: catCityImg,
     },
     {
       id: 'E-Velosipēdi',
       title: 'E-Velosipēdi',
-      subtitle: 'Bianchi T-Tronic, Adriatica, VentVelo Bosch',
-      image: storeGravelImg,
+      subtitle: 'Raymon Bosch, Ecobike, Tabou UP',
+      fallbackImage: storeGravelImg,
+    },
+    {
+      id: 'BĒRNU VELOSIPĒDI',
+      title: 'Bērnu un līdzsvara',
+      subtitle: 'PUKY, Tabou, Karbon, S\'COOL, Royal Baby',
+      fallbackImage: catKidsImg,
+    },
+    {
+      id: 'SALIEKAMIE VELOSIPĒDI',
+      title: 'Saliekamie',
+      subtitle: 'Tabou, Romet Wigry / Jubilat · 20"–24"',
+      fallbackImage: serviceVanImg,
+    },
+    {
+      id: 'BMX VELOSIPĒDI',
+      title: 'BMX',
+      subtitle: 'Tabou Gravity · 20" triku modeļi',
+      fallbackImage: heroWorkshopImg,
+    },
+    {
+      id: 'ŠOSEJAS VELOSIPĒDI',
+      title: 'Šosejas',
+      subtitle: 'Vieglie asfalta modeļi',
+      fallbackImage: storeGravelImg,
+    },
+    {
+      id: 'FATBIKE VELOSIPĒDI',
+      title: 'Fatbike',
+      subtitle: 'Pludmalei un smiltīm',
+      fallbackImage: catMtbImg,
     },
     {
       id: 'Pārbaudīti lietotie',
       title: 'Pārbaudīti lietotie',
       subtitle: 'Darbnīcā pārlasīti ar 12 mēn. garantiju',
-      image: heroWorkshopImg,
+      fallbackImage: heroWorkshopImg,
     },
   ];
 
+  const mainCategories = useMemo(() => {
+    return rawCategoryDefs
+      .map((def) => {
+        const matches = BIKES_FOR_SALE.filter((b) => b.category === def.id);
+        return {
+          ...def,
+          count: matches.length,
+          image: matches[0]?.image || def.fallbackImage,
+        };
+      })
+      .filter((c) => c.count > 0);
+  }, []);
+
+  const availableBrands = useMemo(() => {
+    const set = new Set<string>();
+    BIKES_FOR_SALE.forEach((b) => set.add(b.brand));
+    return ['Visi', ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+  }, []);
+
   const hasActiveFilters =
+    searchQuery.trim() !== '' ||
     selectedCategory !== 'Visi' ||
+    selectedBrand !== 'Visi' ||
+    selectedRiderType !== 'Visi' ||
     selectedSizeFilter !== 'Visi' ||
     selectedAvailability !== 'Visi' ||
-    selectedBrand !== 'Visi' ||
     selectedSuspension !== 'Visi' ||
     selectedMaterial !== 'Visi' ||
     selectedGears !== 'Visi' ||
@@ -177,10 +294,12 @@ export const BikesShowcase: React.FC = () => {
     selectedPriceRange !== 'Visi';
 
   const resetAllFilters = () => {
+    setSearchQuery('');
     setSelectedCategory('Visi');
+    setSelectedBrand('Visi');
+    setSelectedRiderType('Visi');
     setSelectedSizeFilter('Visi');
     setSelectedAvailability('Visi');
-    setSelectedBrand('Visi');
     setSelectedSuspension('Visi');
     setSelectedMaterial('Visi');
     setSelectedGears('Visi');
@@ -191,46 +310,54 @@ export const BikesShowcase: React.FC = () => {
   };
 
   const filteredBikes = useMemo(() => {
-    return BIKES_FOR_SALE.filter((bike) => {
-      if (selectedCategory !== 'Visi' && bike.category !== selectedCategory) return false;
-      if (
-        selectedSizeFilter !== 'Visi' &&
-        !bike.sizesAvailable.some((s) => s.startsWith(selectedSizeFilter))
-      ) {
-        return false;
+    const q = searchQuery.trim().toLowerCase();
+    const matched = BIKES_FOR_SALE.filter((bike) => {
+      if (q) {
+        const hay = `${bike.name} ${bike.brand} ${bike.category} ${bike.groupset} ${bike.brakes} ${bike.frameMaterial} ${bike.riderType || ''} ${bike.sku || ''} ${(bike.specsList || []).map((s) => `${s.label} ${s.value}`).join(' ')}`.toLowerCase();
+        if (!hay.includes(q)) return false;
       }
-      if (selectedAvailability !== 'Visi' && bike.availabilityStatus !== selectedAvailability) return false;
+      if (selectedCategory !== 'Visi' && bike.category !== selectedCategory) return false;
       if (selectedBrand !== 'Visi' && bike.brand !== selectedBrand) return false;
+      if (selectedRiderType !== 'Visi' && (bike.riderType || 'Unisex') !== selectedRiderType) return false;
+      if (!matchesSizeFilter(bike.sizesAvailable, selectedSizeFilter)) return false;
+      if (selectedAvailability !== 'Visi' && bike.availabilityStatus !== selectedAvailability) return false;
       if (selectedSuspension !== 'Visi' && bike.suspension !== selectedSuspension) return false;
       if (selectedMaterial !== 'Visi' && bike.frameMaterialShort !== selectedMaterial) return false;
       if (selectedWheelSize !== 'Visi' && bike.specs.wheelSizeCategory !== selectedWheelSize) return false;
       if (selectedBrakeType !== 'Visi' && bike.brakeType !== selectedBrakeType) return false;
 
       if (selectedGears !== 'Visi') {
-        if (selectedGears === '1 ātrums (BMX / Balanss)' && bike.specs.gears > 1) return false;
+        if (selectedGears === '1 ātrums (Balanss / BMX)' && bike.specs.gears > 1) return false;
         if (selectedGears === '3–8 ātrumi' && (bike.specs.gears < 3 || bike.specs.gears > 8)) return false;
         if (selectedGears === '9–16 ātrumi' && (bike.specs.gears < 9 || bike.specs.gears > 16)) return false;
-        if (selectedGears === '18–27 ātrumi' && bike.specs.gears < 18) return false;
+        if (selectedGears === '18–30 ātrumi' && bike.specs.gears < 18) return false;
       }
 
       if (selectedPriceRange !== 'Visi') {
-        if (selectedPriceRange === 'Līdz €400' && bike.priceEur > 400) return false;
-        if (selectedPriceRange === '€400 – €800' && (bike.priceEur < 400 || bike.priceEur > 800)) return false;
-        if (selectedPriceRange === '€800 – €1300' && (bike.priceEur < 800 || bike.priceEur > 1300)) return false;
-        if (selectedPriceRange === 'Virs €1300' && bike.priceEur <= 1300) return false;
+        if (selectedPriceRange === 'Līdz €350' && bike.priceEur > 350) return false;
+        if (selectedPriceRange === '€350 – €700' && (bike.priceEur < 350 || bike.priceEur > 700)) return false;
+        if (selectedPriceRange === '€700 – €1500' && (bike.priceEur < 700 || bike.priceEur > 1500)) return false;
+        if (selectedPriceRange === 'Virs €1500' && bike.priceEur <= 1500) return false;
       }
 
       return true;
-    }).sort((a, b) => {
+    });
+
+    if (sortBy === 'featured') {
+      return interleaveFeatured(matched);
+    }
+    return matched.sort((a, b) => {
       if (sortBy === 'price_asc') return a.priceEur - b.priceEur;
       if (sortBy === 'price_desc') return b.priceEur - a.priceEur;
       return a.name.localeCompare(b.name);
     });
   }, [
+    searchQuery,
     selectedCategory,
+    selectedBrand,
+    selectedRiderType,
     selectedSizeFilter,
     selectedAvailability,
-    selectedBrand,
     selectedSuspension,
     selectedMaterial,
     selectedGears,
@@ -240,9 +367,22 @@ export const BikesShowcase: React.FC = () => {
     sortBy,
   ]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredBikes.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedBikes = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredBikes.slice(start, start + PAGE_SIZE);
+  }, [filteredBikes, safePage]);
+
+  const goToPage = (page: number) => {
+    const next = Math.max(1, Math.min(totalPages, page));
+    setCurrentPage(next);
+    catalogGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const handleOpenBikeDetails = (bike: BikeProduct) => {
     setSelectedBike(bike);
-    setSelectedSize(bike.sizesAvailable[0] || 'M');
+    setSelectedSize(bike.sizesAvailable[0] || 'One Size');
     setAssemblyOption('assembled');
     setUseTradeIn(false);
     setTradeInModel('');
@@ -296,7 +436,7 @@ export const BikesShowcase: React.FC = () => {
 
     addToCart({
       type: 'bike',
-      productId: `${bike.id}_${assemblyOption}_${useTradeIn ? tradeInEstimateEur : 0}`,
+      productId: `${bike.id}_${selectedSize}_${assemblyOption}_${useTradeIn ? tradeInEstimateEur : 0}`,
       name: `${bike.name} – ${selectedSize || bike.sizesAvailable[0]}`,
       priceEur: finalTotal,
       quantity: 1,
@@ -325,62 +465,28 @@ export const BikesShowcase: React.FC = () => {
       label: 'Sadaļas',
       value: selectedCategory,
       onChange: setSelectedCategory,
-      options: [
-        'Visi',
-        'KALNU VELOSIPĒDI (MTB)',
-        'GRAVEL VELOSIPĒDI',
-        'ŠOSEJAS VELOSIPĒDI',
-        'PILSĒTAS VELOSIPĒDI',
-        'HIBRĪDA UN TŪRISMA VELOSIPĒDI',
-        'BĒRNU VELOSIPĒDI',
-        'BMX VELOSIPĒDI',
-        'FATBIKE VELOSIPĒDI',
-        'SALIEKAMIE VELOSIPĒDI',
-        'E-Velosipēdi',
-        'Pārbaudīti lietotie',
-      ],
-    },
-    {
-      key: 'size',
-      label: 'Rāmja izmērs',
-      value: selectedSizeFilter,
-      onChange: setSelectedSizeFilter,
-      options: ['Visi', '12"', '16"', '20"', '24"', '26"', 'XS', 'S', 'M', 'L', 'XL', 'One Size'],
-    },
-    {
-      key: 'availability',
-      label: 'Pieejamība',
-      value: selectedAvailability,
-      onChange: setSelectedAvailability,
-      options: ['Visi', 'Noliktavā Rindas 44', 'Piegāde 2–3 d.d.'],
+      options: ['Visi', ...mainCategories.map((c) => c.id)],
     },
     {
       key: 'brand',
       label: 'Zīmols',
       value: selectedBrand,
       onChange: setSelectedBrand,
-      options: ['Visi', 'DRAG', 'Fuji', 'Adriatica', 'Bianchi', 'Radio', 'SE Bikes', 'VentVelo', 'Specialized'],
+      options: availableBrands,
     },
     {
-      key: 'suspension',
-      label: 'Amortizatori',
-      value: selectedSuspension,
-      onChange: setSelectedSuspension,
-      options: ['Visi', 'Priekšējais amortizators (Hardtail)', 'Cietā dakša (Rigid)'],
+      key: 'riderType',
+      label: 'Modelis',
+      value: selectedRiderType,
+      onChange: setSelectedRiderType,
+      options: ['Visi', 'Vīriešu', 'Sieviešu', 'Unisex'],
     },
     {
-      key: 'material',
-      label: 'Rāmja materiāls',
-      value: selectedMaterial,
-      onChange: setSelectedMaterial,
-      options: ['Visi', 'Alumīnijs', 'Oglekļa šķiedra (Carbon)', 'Tērauds (Hi-Ten / Cr-Mo)'],
-    },
-    {
-      key: 'gears',
-      label: 'Ātrumu skaits',
-      value: selectedGears,
-      onChange: setSelectedGears,
-      options: ['Visi', '1 ātrums (BMX / Balanss)', '3–8 ātrumi', '9–16 ātrumi', '18–27 ātrumi'],
+      key: 'size',
+      label: 'Rāmja izmērs',
+      value: selectedSizeFilter,
+      onChange: setSelectedSizeFilter,
+      options: ['Visi', '12"', '14"', '16"', '18"', '20"', '24"', '26"', 'XS', 'S', 'M', 'L', 'XL', 'One Size'],
     },
     {
       key: 'wheelSize',
@@ -390,6 +496,27 @@ export const BikesShowcase: React.FC = () => {
       options: ['Visi', '12" / 16"', '20"', '24"', '26"', '27.5"', '28" / 700c', '29"'],
     },
     {
+      key: 'material',
+      label: 'Rāmja materiāls',
+      value: selectedMaterial,
+      onChange: setSelectedMaterial,
+      options: ['Visi', 'Alumīnijs', 'Oglekļa šķiedra (Carbon)', 'Tērauds (Hi-Ten / Cr-Mo)'],
+    },
+    {
+      key: 'suspension',
+      label: 'Amortizatori',
+      value: selectedSuspension,
+      onChange: setSelectedSuspension,
+      options: ['Visi', 'Priekšējais amortizators (Hardtail)', 'Cietā dakša (Rigid)'],
+    },
+    {
+      key: 'gears',
+      label: 'Ātrumu skaits',
+      value: selectedGears,
+      onChange: setSelectedGears,
+      options: ['Visi', '1 ātrums (Balanss / BMX)', '3–8 ātrumi', '9–16 ātrumi', '18–30 ātrumi'],
+    },
+    {
       key: 'brakes',
       label: 'Bremžu tips',
       value: selectedBrakeType,
@@ -397,13 +524,37 @@ export const BikesShowcase: React.FC = () => {
       options: ['Visi', 'Hidrauliskās disku', 'Mehāniskās disku', 'V-veida un kājas bremze', 'Šosejas / BMX bremzes'],
     },
     {
+      key: 'availability',
+      label: 'Pieejamība',
+      value: selectedAvailability,
+      onChange: setSelectedAvailability,
+      options: ['Visi', 'Noliktavā Rindas 44', 'Piegāde 2–3 d.d.'],
+    },
+    {
       key: 'price',
       label: 'Cena',
       value: selectedPriceRange,
       onChange: setSelectedPriceRange,
-      options: ['Visi', 'Līdz €400', '€400 – €800', '€800 – €1300', 'Virs €1300'],
+      options: ['Visi', 'Līdz €350', '€350 – €700', '€700 – €1500', 'Virs €1500'],
     },
   ];
+
+  // Page number helper for pagination UI
+  const pageNumbers = useMemo(() => {
+    const pages: (number | '...')[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (safePage > 3) pages.push('...');
+      for (let i = Math.max(2, safePage - 1); i <= Math.min(totalPages - 1, safePage + 1); i++) {
+        pages.push(i);
+      }
+      if (safePage < totalPages - 2) pages.push('...');
+      pages.push(totalPages);
+    }
+    return pages;
+  }, [totalPages, safePage]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
@@ -413,7 +564,7 @@ export const BikesShowcase: React.FC = () => {
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-stone-900 font-heading">Velosipēdu kategorijas</h1>
             <p className="text-xs text-stone-500 mt-0.5">
-              Visi {BIKES_FOR_SALE.length} modeļi no kalnu un gravel līdz BMX, fatbike un E-velosipēdiem
+              Visi {BIKES_FOR_SALE.length} pieejamie modeļi no kalnu un gravel līdz pilsētas, bērnu, BMX un E-velosipēdiem
             </p>
           </div>
           {selectedCategory !== 'Visi' && (
@@ -426,10 +577,9 @@ export const BikesShowcase: React.FC = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           {mainCategories.map((cat) => {
             const isActive = selectedCategory === cat.id;
-            const catCount = BIKES_FOR_SALE.filter((b) => b.category === cat.id).length;
             return (
               <button
                 key={cat.id}
@@ -441,15 +591,18 @@ export const BikesShowcase: React.FC = () => {
                     : 'border-stone-200 hover:border-stone-300 shadow-xs hover:shadow-md'
                 }`}
               >
-                <div className="aspect-4/3 bg-stone-100 overflow-hidden relative">
+                <div className="aspect-4/3 bg-white overflow-hidden relative p-2.5 border-b border-stone-100">
                   <img
                     src={cat.image}
                     alt={cat.title}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                    loading="lazy"
+                    decoding="async"
+                    className={`w-full h-full ${
+                      cat.id === 'Pārbaudīti lietotie' ? 'object-cover rounded-lg' : 'object-contain'
+                    } group-hover:scale-103 transition-transform duration-300`}
                   />
-                  <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-stone-900/80 text-white text-[10px] font-bold tabular-nums">
-                    {catCount}
+                  <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-stone-900/85 text-white text-[10px] font-bold tabular-nums">
+                    {cat.count}
                   </span>
                 </div>
                 <div className="p-2.5 sm:p-3 text-center space-y-0.5 flex-1 flex flex-col justify-center">
@@ -479,7 +632,7 @@ export const BikesShowcase: React.FC = () => {
               Velosipēdu salons un katalogs ar garantiju
             </h2>
             <p className="text-stone-300 text-sm leading-relaxed">
-              Kalnu (MTB), Gravel, šosejas, pilsētas, hibrīda, bērnu, BMX, Fatbike, saliekamie un E-velosipēdi ar 18 gadu servisa pieredzi. Izvēlies pasūtīt riteni oriģinālajā kastē vai uztici meistaram pilnu montāžu ar oficiālu garantiju par €35.
+              Pieejamie Raymon, Unibike, Romet, Tabou, Ecobike, PUKY, S&apos;COOL un Karbon modeļi ar tiešo noliktavas uzskaiti. Izvēlies pasūtīt riteni oriģinālajā kastē vai uztici meistaram pilnu montāžu ar oficiālu garantiju par €35.
             </p>
           </div>
 
@@ -589,99 +742,121 @@ export const BikesShowcase: React.FC = () => {
         </div>
       </section>
 
-      {/* Multi-Parameter Filter Bar (adapted from veloprofs.lv MTB filter bar to VentVelo) */}
+      {/* Search & Multi-Parameter Filter Bar */}
       <section ref={filterBarRef} className="space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-stone-200 pb-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {filterConfigs.map((cfg) => {
-              const isSelected = cfg.value !== 'Visi';
-              const isOpen = openDropdown === cfg.key;
-              return (
-                <div key={cfg.key} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setOpenDropdown(isOpen ? null : cfg.key)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap cursor-pointer ${
-                      isSelected
-                        ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                        : isOpen
-                        ? 'bg-stone-100 text-stone-900 border-stone-400'
-                        : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400 hover:bg-stone-50'
-                    }`}
-                  >
-                    <span>
-                      {cfg.label}
-                      {isSelected ? `: ${cfg.value}` : ''}
-                    </span>
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {isOpen && (
-                    <div className="absolute left-0 top-full mt-1.5 z-30 min-w-[220px] max-w-[85vw] max-h-72 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-xl p-1.5 space-y-0.5">
-                      {cfg.options.map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => {
-                            cfg.onChange(opt);
-                            setOpenDropdown(null);
-                          }}
-                          className={`w-full text-left px-3 py-2 text-xs rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
-                            cfg.value === opt
-                              ? 'bg-amber-50 text-amber-900 font-semibold'
-                              : 'text-stone-700 hover:bg-stone-100'
-                          }`}
-                        >
-                          <span>{opt === 'Visi' ? `Visi (${cfg.label.toLowerCase()})` : opt}</span>
-                          {cfg.value === opt && <Check className="w-3.5 h-3.5 text-amber-600" />}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {hasActiveFilters && (
+        {/* Search Input & Quick Counter */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Meklēt modeli, zīmolu vai aprīkojumu (piem., Raymon, Unibike, Gravel, Bosch, PUKY, Deore...)"
+              className="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm bg-white border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 shadow-xs"
+            />
+            {searchQuery && (
               <button
                 type="button"
-                onClick={resetAllFilters}
-                className="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-amber-700 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 cursor-pointer"
+                aria-label="Notīrīt meklēšanu"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Notīrīt filtrus</span>
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          {/* Sort & Counter */}
-          <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0">
-            <span className="text-xs text-stone-500 font-medium tabular-nums">
-              Atrasti {filteredBikes.length} modeļi
+          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+            <span className="text-xs text-stone-600 font-medium tabular-nums">
+              Atrasti <strong className="text-stone-950">{filteredBikes.length}</strong> modeļi
             </span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'price_asc' | 'price_desc' | 'name')}
+              onChange={(e) => setSortBy(e.target.value as 'featured' | 'price_asc' | 'price_desc' | 'name')}
               aria-label="Kārtot velosipēdus"
-              className="px-3 py-2 text-xs font-medium bg-white border border-stone-200 rounded-lg text-stone-800 cursor-pointer focus:outline-none focus:border-stone-900"
+              className="px-3 py-2.5 text-xs font-medium bg-white border border-stone-200 rounded-xl text-stone-800 cursor-pointer focus:outline-none focus:border-stone-900 shadow-xs"
             >
+              <option value="featured">Ieteicamie vispirms</option>
               <option value="price_asc">Cena, no lētākās</option>
               <option value="price_desc">Cena, no dārgākās</option>
               <option value="name">Nosaukums A–Ž</option>
             </select>
           </div>
         </div>
+
+        <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 pb-4">
+          {filterConfigs.map((cfg) => {
+            const isSelected = cfg.value !== 'Visi';
+            const isOpen = openDropdown === cfg.key;
+            return (
+              <div key={cfg.key} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenDropdown(isOpen ? null : cfg.key)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap cursor-pointer ${
+                    isSelected
+                      ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                      : isOpen
+                      ? 'bg-stone-100 text-stone-900 border-stone-400'
+                      : 'bg-white text-stone-700 border-stone-200 hover:border-stone-400 hover:bg-stone-50'
+                  }`}
+                >
+                  <span>
+                    {cfg.label}
+                    {isSelected ? `: ${cfg.value}` : ''}
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isOpen && (
+                  <div className="absolute left-0 top-full mt-1.5 z-30 min-w-[220px] max-w-[85vw] max-h-72 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-xl p-1.5 space-y-0.5">
+                    {cfg.options.map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => {
+                          cfg.onChange(opt);
+                          setOpenDropdown(null);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
+                          cfg.value === opt
+                            ? 'bg-amber-50 text-amber-900 font-semibold'
+                            : 'text-stone-700 hover:bg-stone-100'
+                        }`}
+                      >
+                        <span>{opt === 'Visi' ? `Visi (${cfg.label.toLowerCase()})` : opt}</span>
+                        {cfg.value === opt && <Check className="w-3.5 h-3.5 text-amber-600" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={resetAllFilters}
+              className="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-amber-700 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Notīrīt filtrus</span>
+            </button>
+          )}
+        </div>
       </section>
 
       {/* Product Grid */}
-      <div ref={catalogGridRef}>
+      <div ref={catalogGridRef} className="space-y-8">
         {filteredBikes.length === 0 ? (
           <div className="bg-white border border-stone-200 rounded-2xl p-12 text-center space-y-3">
             <p className="text-sm font-semibold text-stone-900">
               Pēc izvēlētajiem filtriem velosipēdi netika atrasti.
             </p>
             <p className="text-xs text-stone-500">
-              Pamēģini noņemt kādu no filtriem vai sazinies ar mūsu meistaru par individuālu pasūtījumu tieši no ražotāju piegādēm.
+              Pamēģini noņemt kādu no filtriem vai sazinies ar mūsu meistaru par individuālu pasūtījumu.
             </p>
             <div className="flex flex-wrap justify-center gap-2 pt-1">
               <button
@@ -702,139 +877,215 @@ export const BikesShowcase: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBikes.map((bike) => {
-              const discountEur = bike.originalPriceEur ? bike.originalPriceEur - bike.priceEur : 0;
-              return (
-                <div
-                  key={bike.id}
-                  className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
-                >
-                  {/* Image container */}
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedBikes.map((bike) => {
+                const discountEur = bike.originalPriceEur ? bike.originalPriceEur - bike.priceEur : 0;
+                const isRefurbished = bike.condition === 'Certified Refurbished';
+                return (
                   <div
-                    className="relative aspect-4/3 bg-stone-100 overflow-hidden cursor-pointer"
-                    onClick={() => handleOpenBikeDetails(bike)}
+                    key={bike.id}
+                    className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
                   >
-                    <img
-                      src={bike.image}
-                      alt={bike.name}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-                    />
+                    {/* Image container */}
+                    <div
+                      className={`relative aspect-4/3 ${isRefurbished ? 'bg-stone-100' : 'bg-white p-3'} overflow-hidden cursor-pointer border-b border-stone-100`}
+                      onClick={() => handleOpenBikeDetails(bike)}
+                    >
+                      <img
+                        src={bike.image}
+                        alt={bike.name}
+                        loading="lazy"
+                        decoding="async"
+                        className={`w-full h-full ${
+                          isRefurbished ? 'object-cover' : 'object-contain'
+                        } group-hover:scale-103 transition-transform duration-300`}
+                      />
 
-                    {discountEur > 0 && (
-                      <div className="absolute top-3 left-3 bg-amber-500 text-stone-950 text-[11px] font-bold px-2.5 py-0.5 rounded shadow-xs font-mono tabular-nums">
-                        -{formatPrice(discountEur)}
-                      </div>
-                    )}
+                      {discountEur > 0 && (
+                        <div className="absolute top-3 left-3 bg-amber-500 text-stone-950 text-[11px] font-bold px-2.5 py-0.5 rounded shadow-xs font-mono tabular-nums">
+                          -{formatPrice(discountEur)}
+                        </div>
+                      )}
 
-                    <div className="absolute bottom-3 left-3 bg-stone-950/85 backdrop-blur-md text-stone-100 text-[11px] font-medium px-2.5 py-1 rounded border border-stone-700">
-                      {bike.availabilityStatus}
-                    </div>
-                  </div>
+                      {bike.year && (
+                        <div className="absolute top-3 right-3 bg-stone-100 text-stone-700 text-[10px] font-bold px-2 py-0.5 rounded border border-stone-200 tabular-nums">
+                          {bike.year}
+                        </div>
+                      )}
 
-                  {/* Card Body */}
-                  <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-                    <div className="space-y-2">
-                      {/* Clean unboxed metadata per zero-pill discipline */}
-                      <div className="flex items-center gap-2 text-xs text-stone-500">
-                        <span className="font-semibold text-stone-800">{bike.brand}</span>
-                        <span aria-hidden="true">·</span>
-                        <span className="truncate">{bike.category}</span>
-                      </div>
-
-                      <h3
-                        onClick={() => handleOpenBikeDetails(bike)}
-                        className="font-bold text-stone-900 text-base leading-snug cursor-pointer hover:text-amber-600 transition-colors"
-                      >
-                        {bike.name}
-                      </h3>
-
-                      <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
-                        {bike.groupset} · {bike.brakeType}
-                      </p>
-
-                      <div className="text-[11px] text-stone-500 pt-1">
-                        Izmēri: <span className="text-stone-700 font-medium">{bike.sizesAvailable.join(' · ')}</span>
+                      <div className="absolute bottom-3 left-3 bg-stone-950/85 backdrop-blur-md text-stone-100 text-[11px] font-medium px-2.5 py-1 rounded border border-stone-700">
+                        {bike.availabilityStatus}
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-stone-100 space-y-3">
-                      <div className="flex items-end justify-between gap-2">
-                        <div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-bold text-stone-950 font-mono tabular-nums">
-                              {formatPrice(bike.priceEur)}
-                            </span>
-                            {bike.originalPriceEur && (
-                              <span className="text-xs text-stone-400 line-through font-mono tabular-nums">
-                                {formatPrice(bike.originalPriceEur)}
+                    {/* Card Body */}
+                    <div className="p-5 sm:p-6 space-y-4 flex-1 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-stone-500">
+                          <span className="font-semibold text-stone-800">{bike.brand}</span>
+                          <span aria-hidden="true">·</span>
+                          <span className="truncate">{bike.category}</span>
+                          {bike.riderType && (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <span className="shrink-0">{bike.riderType}</span>
+                            </>
+                          )}
+                        </div>
+
+                        <h3
+                          onClick={() => handleOpenBikeDetails(bike)}
+                          className="font-bold text-stone-900 text-base leading-snug cursor-pointer hover:text-amber-600 transition-colors"
+                        >
+                          {bike.name}
+                        </h3>
+
+                        <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
+                          {bike.groupset} · {bike.brakeType}
+                        </p>
+
+                        <div className="text-[11px] text-stone-500 pt-1">
+                          Izmēri: <span className="text-stone-700 font-medium">{bike.sizesAvailable.join(' · ')}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-stone-100 space-y-3">
+                        <div className="flex items-end justify-between gap-2">
+                          <div>
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-2xl font-bold text-stone-950 font-mono tabular-nums">
+                                {formatPrice(bike.priceEur)}
                               </span>
-                            )}
+                              {bike.originalPriceEur && (
+                                <span className="text-xs text-stone-400 line-through font-mono tabular-nums">
+                                  {formatPrice(bike.originalPriceEur)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-stone-500 mt-0.5 tabular-nums">
+                              Inbank / ESTO no <strong className="text-stone-800">{formatPrice(monthlyEstimate(bike.priceEur))}/mēn.</strong>
+                            </div>
                           </div>
-                          <div className="text-[11px] text-stone-500 mt-0.5 tabular-nums">
-                            Inbank / ESTO no <strong className="text-stone-800">{formatPrice(monthlyEstimate(bike.priceEur))}/mēn.</strong>
+
+                          <div className="text-xs text-emerald-700 font-medium flex items-center gap-1 shrink-0">
+                            <Check className="w-3.5 h-3.5" />
+                            <span>{bike.inStockCount} gab.</span>
                           </div>
                         </div>
 
-                        <div className="text-xs text-emerald-700 font-medium flex items-center gap-1 shrink-0">
-                          <Check className="w-3.5 h-3.5" />
-                          <span>{bike.inStockCount} gab.</span>
+                        <div className="grid grid-cols-2 gap-1.5 text-[11px] pt-1">
+                          <div className="bg-emerald-50 border border-emerald-200/80 text-emerald-950 px-2.5 py-1.5 rounded-lg tabular-nums">
+                            <span className="font-bold block">Inbank</span>
+                            <span>no {formatPrice(monthlyEstimate(bike.priceEur))}/mēn.</span>
+                          </div>
+                          <div className="bg-amber-50 border border-amber-200/80 text-amber-950 px-2.5 py-1.5 rounded-lg tabular-nums">
+                            <span className="font-bold block">ESTO 3 (0%)</span>
+                            <span>3 × {formatPrice(Math.round(bike.priceEur / 3))}</span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-1.5 text-[11px] pt-1">
-                        <div className="bg-emerald-50 border border-emerald-200/80 text-emerald-950 px-2.5 py-1.5 rounded-lg tabular-nums">
-                          <span className="font-bold block">Inbank</span>
-                          <span>no {formatPrice(monthlyEstimate(bike.priceEur))}/mēn.</span>
+                        <div className="text-[11px] text-stone-500 bg-stone-50 px-2.5 py-1.5 rounded-lg border border-stone-100">
+                          Kastē (€0, bez garantijas) vai <strong className="text-stone-800">+€35 salikts ar garantiju</strong>
                         </div>
-                        <div className="bg-amber-50 border border-amber-200/80 text-amber-950 px-2.5 py-1.5 rounded-lg tabular-nums">
-                          <span className="font-bold block">ESTO 3 (0%)</span>
-                          <span>3 × {formatPrice(Math.round(bike.priceEur / 3))}</span>
+
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <button
+                            onClick={() => handleOpenBikeDetails(bike)}
+                            className="py-2.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
+                          >
+                            Specifikācija / Izmērs
+                          </button>
+                          <button
+                            onClick={() => handleOpenBikeDetails(bike)}
+                            className="py-2.5 px-3 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
+                          >
+                            Pirkt / Līzings
+                          </button>
                         </div>
-                      </div>
-
-                      <div className="text-[11px] text-stone-500 bg-stone-50 px-2.5 py-1.5 rounded-lg border border-stone-100">
-                        Kastē (€0, bez garantijas) vai <strong className="text-stone-800">+€35 salikts ar garantiju</strong>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <button
-                          onClick={() => handleOpenBikeDetails(bike)}
-                          className="py-2.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
-                        >
-                          Izvēlēties izmēru
-                        </button>
-                        <button
-                          onClick={() => handleOpenBikeDetails(bike)}
-                          className="py-2.5 px-3 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
-                        >
-                          Pirkt / Līzings
-                        </button>
                       </div>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination Bar */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-stone-200">
+                <div className="text-xs text-stone-500 tabular-nums">
+                  Rādīti {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filteredBikes.length)} no{' '}
+                  <strong className="text-stone-900">{filteredBikes.length}</strong> modeļiem (lapa {safePage} no {totalPages})
                 </div>
-              );
-            })}
-          </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={safePage <= 1}
+                    onClick={() => goToPage(safePage - 1)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Iepriekšējā</span>
+                  </button>
+
+                  {pageNumbers.map((p, i) =>
+                    p === '...' ? (
+                      <span key={`ellipsis_${i}`} className="px-2 text-xs text-stone-400">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => goToPage(p)}
+                        className={`min-w-[32px] h-8 px-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer tabular-nums ${
+                          safePage === p
+                            ? 'bg-stone-900 text-white border-stone-900'
+                            : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={safePage >= totalPages}
+                    onClick={() => goToPage(safePage + 1)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <span className="hidden sm:inline">Nākamā</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Detailed Bike Modal (Veloprofs size selector + Box vs +€35 Assembled + Trade-in + Inbank/ESTO) */}
+      {/* Detailed Bike Modal */}
       {selectedBike && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4">
           <div className="bg-white border border-stone-200 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
             {/* Modal Header */}
             <div className="bg-stone-900 text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between border-b border-stone-800 shrink-0">
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-amber-400 font-semibold">{selectedBike.brand}</span>
+              <div className="flex items-center gap-2 text-xs min-w-0">
+                <span className="text-amber-400 font-semibold shrink-0">{selectedBike.brand}</span>
                 <span className="text-stone-500">·</span>
-                <span className="text-stone-300 truncate max-w-[200px] sm:max-w-none">{selectedBike.category}</span>
+                <span className="text-stone-300 truncate">{selectedBike.category}</span>
+                {selectedBike.year && (
+                  <>
+                    <span className="text-stone-500 hidden sm:inline">·</span>
+                    <span className="text-stone-400 hidden sm:inline">{selectedBike.year}</span>
+                  </>
+                )}
               </div>
               <button
                 onClick={() => setSelectedBike(null)}
-                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors cursor-pointer"
+                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors cursor-pointer shrink-0"
                 aria-label="Aizvērt logu"
               >
                 <X className="w-5 h-5" />
@@ -850,12 +1101,17 @@ export const BikesShowcase: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
                 {/* Left: Image & Desktop Highlights */}
                 <div className="md:col-span-5 space-y-4">
-                  <div className="rounded-xl overflow-hidden bg-stone-100 border border-stone-200 h-44 sm:h-52 md:h-auto md:aspect-4/3 relative">
+                  <div
+                    className={`rounded-xl overflow-hidden ${
+                      selectedBike.condition === 'Certified Refurbished' ? 'bg-stone-100' : 'bg-white p-3'
+                    } border border-stone-200 h-44 sm:h-52 md:h-auto md:aspect-4/3 relative`}
+                  >
                     <img
                       src={selectedBike.image}
                       alt={selectedBike.name}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full ${
+                        selectedBike.condition === 'Certified Refurbished' ? 'object-cover' : 'object-contain'
+                      }`}
                     />
                     <div className="absolute bottom-2.5 left-2.5 bg-stone-950/90 text-white text-[11px] sm:text-xs px-2.5 py-1 rounded backdrop-blur-sm flex items-center gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
@@ -870,7 +1126,7 @@ export const BikesShowcase: React.FC = () => {
                   {/* Specs summary mini grid (Desktop right under photo; shown below options on mobile) */}
                   <div className="hidden md:grid grid-cols-2 gap-2.5 text-xs">
                     <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
-                      <span className="text-stone-500 block text-[11px]">Ātrumi</span>
+                      <span className="text-stone-500 block text-[11px]">Ātrumi / Sistēma</span>
                       <span className="font-semibold text-stone-900">{selectedBike.groupset}</span>
                     </div>
                     <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
@@ -882,8 +1138,10 @@ export const BikesShowcase: React.FC = () => {
                       <span className="font-semibold text-stone-900">{selectedBike.specs.wheelSize}</span>
                     </div>
                     <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
-                      <span className="text-stone-500 block text-[11px]">Svars</span>
-                      <span className="font-semibold text-stone-900 font-mono">{selectedBike.specs.weightKg} kg</span>
+                      <span className="text-stone-500 block text-[11px]">Svars / Noliktavā</span>
+                      <span className="font-semibold text-stone-900 font-mono">
+                        {selectedBike.specs.weightKg} kg · {selectedBike.inStockCount} gab.
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -894,7 +1152,18 @@ export const BikesShowcase: React.FC = () => {
                     <h2 className="text-xl sm:text-2xl font-bold text-stone-900 font-heading leading-tight">
                       {selectedBike.name}
                     </h2>
-                    <div className="mt-1.5 flex flex-wrap items-baseline gap-2.5">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-stone-500">
+                      {selectedBike.riderType && <span>Modelis: {selectedBike.riderType}</span>}
+                      {selectedBike.sku && (
+                        <>
+                          <span>·</span>
+                          <span className="font-mono">Kods: {selectedBike.sku}</span>
+                        </>
+                      )}
+                      <span>·</span>
+                      <span className="text-emerald-700 font-semibold">Pieejami {selectedBike.inStockCount} gab.</span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-baseline gap-2.5">
                       <span className="text-2xl sm:text-3xl font-bold text-stone-950 font-mono tabular-nums">
                         {formatPrice(getFinalPrice(selectedBike))}
                       </span>
@@ -904,7 +1173,8 @@ export const BikesShowcase: React.FC = () => {
                         </span>
                       )}
                       <span className="text-xs text-stone-600 tabular-nums">
-                        ar PVN · Inbank / ESTO no <strong>{formatPrice(monthlyEstimate(getFinalPrice(selectedBike)))}/mēn.</strong>
+                        ar PVN · Inbank / ESTO no{' '}
+                        <strong>{formatPrice(monthlyEstimate(getFinalPrice(selectedBike)))}/mēn.</strong>
                       </span>
                     </div>
                   </div>
@@ -912,7 +1182,7 @@ export const BikesShowcase: React.FC = () => {
                   {/* Frame Size Selector */}
                   <div>
                     <label className="block text-xs font-semibold text-stone-800 mb-2">
-                      Rāmja izmērs (pēc braucēja auguma):
+                      Rāmja / riteņa izmērs:
                     </label>
                     <div className="flex flex-wrap gap-2">
                       {selectedBike.sizesAvailable.map((size) => (
@@ -932,7 +1202,7 @@ export const BikesShowcase: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Assembly Choice: Oriģinālajā iepakojumā (kastē) vs +€35 Meistara salikts ar garantiju */}
+                  {/* Assembly Choice */}
                   <div className="space-y-2">
                     <label className="block text-xs font-semibold text-stone-800">
                       Izvēlies komplektāciju un garantiju:
@@ -961,7 +1231,7 @@ export const BikesShowcase: React.FC = () => {
                             <span className="font-mono text-amber-800">+€35</span>
                           </div>
                           <p className="text-stone-600 leading-relaxed">
-                            Pilnībā samontēts un noregulēts ar {selectedBike.guaranteeMonths} mēnešu VentVelo darbnīcas garantiju. Piegāde ar busiņu pēc izvēles vai saņemšana veikalā Rindas ielā 44 jau samontētu un gatavu braukšanai!
+                            Pilnībā samontēts un noregulēts ar {selectedBike.guaranteeMonths} mēnešu VentVelo darbnīcas garantiju. Piegāde ar busiņu pēc izvēles vai saņemšana veikalā Rindas ielā 44 jau gatavu braukšanai!
                           </p>
                         </div>
                       </label>
@@ -996,7 +1266,7 @@ export const BikesShowcase: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Trade-In Option: Vecais ritenis kā pirmā iemaksa */}
+                  {/* Trade-In Option */}
                   <div className="bg-stone-50 border border-stone-200 rounded-xl p-3.5 space-y-3 text-xs">
                     <label className="flex items-center justify-between gap-2 cursor-pointer">
                       <span className="font-bold text-stone-900 flex items-center gap-1.5">
@@ -1049,10 +1319,10 @@ export const BikesShowcase: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Mobile Specs summary mini grid (Placed below size & assembly options on mobile) */}
+                  {/* Mobile Specs summary mini grid */}
                   <div className="grid md:hidden grid-cols-2 gap-2 text-xs pt-1">
                     <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
-                      <span className="text-stone-500 block text-[11px]">Ātrumi</span>
+                      <span className="text-stone-500 block text-[11px]">Ātrumi / Sistēma</span>
                       <span className="font-semibold text-stone-900">{selectedBike.groupset}</span>
                     </div>
                     <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
@@ -1064,12 +1334,35 @@ export const BikesShowcase: React.FC = () => {
                       <span className="font-semibold text-stone-900">{selectedBike.specs.wheelSize}</span>
                     </div>
                     <div className="p-2.5 bg-stone-50 rounded-lg border border-stone-100">
-                      <span className="text-stone-500 block text-[11px]">Svars</span>
-                      <span className="font-semibold text-stone-900 font-mono">{selectedBike.specs.weightKg} kg</span>
+                      <span className="text-stone-500 block text-[11px]">Svars / Noliktavā</span>
+                      <span className="font-semibold text-stone-900 font-mono">
+                        {selectedBike.specs.weightKg} kg · {selectedBike.inStockCount} gab.
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Full Technical Specifications from Partner Feed */}
+              {selectedBike.specsList && selectedBike.specsList.length > 0 && (
+                <div className="pt-4 border-t border-stone-200 space-y-3">
+                  <h4 className="font-bold text-stone-900 text-sm font-heading">Tehniskā specifikācija</h4>
+                  {selectedBike.descriptionText && (
+                    <p className="text-xs text-stone-600 leading-relaxed">{selectedBike.descriptionText}</p>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs bg-stone-50 border border-stone-200/80 rounded-xl p-4">
+                    {selectedBike.specsList.map((spec, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start justify-between gap-3 py-1.5 border-b border-stone-200/60 last:border-b-0"
+                      >
+                        <span className="text-stone-500 shrink-0">{spec.label}:</span>
+                        <span className="font-medium text-stone-900 text-right">{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Features & 18 years proof */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-stone-200 text-xs">
@@ -1115,19 +1408,19 @@ export const BikesShowcase: React.FC = () => {
               </div>
             </div>
 
-            {/* Clear Scroll-Down Indicator Bar when content continues below */}
+            {/* Clear Scroll-Down Indicator Bar */}
             {showScrollHint && (
               <button
                 type="button"
                 onClick={() => modalBodyRef.current?.scrollBy({ top: 260, behavior: 'smooth' })}
                 className="w-full py-2 px-4 bg-amber-50 hover:bg-amber-100 border-t border-amber-200 text-amber-900 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-colors"
               >
-                <span>Ritini uz leju: komplektācija (+€35), maiņa un līzings</span>
+                <span>Ritini uz leju: specifikācija, komplektācija (+€35) un līzings</span>
                 <ChevronDown className="w-4 h-4 animate-bounce shrink-0" />
               </button>
             )}
 
-            {/* Compact Modal Footer (single row on mobile so scrollable area stays large) */}
+            {/* Compact Modal Footer */}
             <div className="bg-stone-50 px-4 py-3 sm:px-6 sm:py-4 border-t border-stone-200 flex items-center justify-between gap-2.5 shrink-0">
               <button
                 onClick={() => setSelectedBike(null)}

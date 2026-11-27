@@ -49,7 +49,7 @@ export const Header: React.FC = () => {
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>
-                    <strong className="text-amber-300">Velosipēdi pārdošanā:</strong> MTB, Gravel, pilsētas un bērnu — kastē (€0) vai meistara salikti ar garantiju (+€35)
+                    <strong className="text-amber-300">Velosipēdi pārdošanā:</strong> MTB, Gravel, pilsētas, bērnu un E-velosipēdi — kastē (€0) vai meistara salikti ar garantiju (+€35)
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>

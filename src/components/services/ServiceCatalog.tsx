@@ -75,13 +75,8 @@ export const ServiceCatalog: React.FC = () => {
 
           {/* 4 Bicycle Preview Photo Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              'bike_mtb_drag_hardy3',
-              'bike_gravel_drag_sterrato3',
-              'bike_city_drag_grand_canyon',
-              'bike_kids_drag_hardy20',
-            ]
-              .map((id) => BIKES_FOR_SALE.find((b) => b.id === id))
+            {(['KALNU VELOSIPĒDI (MTB)', 'GRAVEL VELOSIPĒDI', 'HIBRĪDA UN TŪRISMA VELOSIPĒDI', 'E-Velosipēdi'] as const)
+              .map((cat) => BIKES_FOR_SALE.find((b) => b.category === cat) || BIKES_FOR_SALE[0])
               .filter((b): b is NonNullable<typeof b> => Boolean(b))
               .map((bike) => (
                 <div
@@ -90,14 +85,15 @@ export const ServiceCatalog: React.FC = () => {
                   className="group bg-stone-900 border border-stone-800 hover:border-amber-400 rounded-xl overflow-hidden flex flex-col justify-between cursor-pointer transition-all hover:-translate-y-0.5"
                 >
                   <div>
-                    <div className="aspect-4/3 bg-stone-800 overflow-hidden relative">
+                    <div className="aspect-4/3 bg-white overflow-hidden relative p-3">
                       <img
                         src={bike.image}
                         alt={bike.name}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
-                      <div className="absolute bottom-2.5 left-2.5 bg-stone-950/85 text-amber-400 text-[11px] font-bold px-2.5 py-0.5 rounded border border-stone-700">
+                      <div className="absolute bottom-2.5 left-2.5 bg-stone-950/90 text-amber-400 text-[11px] font-bold px-2.5 py-0.5 rounded border border-stone-700">
                         {bike.category}
                       </div>
                     </div>
@@ -178,7 +174,7 @@ export const ServiceCatalog: React.FC = () => {
             </h2>
 
             <p className="text-stone-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              VentVelo darbojas jau <strong className="text-white">18 gadus</strong> – no precīzas ratu spieķošanas un pilnas rāmja pārlasīšanas līdz jaunu kalnu, gravel, pilsētas un bērnu velosipēdu tirdzniecībai ar garantiju. Paņemam un atvedam Tavu ričuku <strong className="text-white">Ventspilī, Usmā un Talsos</strong>.
+              VentVelo darbojas jau <strong className="text-white">18 gadus</strong> – no precīzas ratu spieķošanas un pilnas rāmja pārlasīšanas līdz jaunu kalnu, gravel, pilsētas, bērnu un E-velosipēdu tirdzniecībai ar garantiju. Paņemam un atvedam Tavu ričuku <strong className="text-white">Ventspilī, Usmā un Talsos</strong>.
             </p>
 
             <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4">
@@ -194,7 +190,7 @@ export const ServiceCatalog: React.FC = () => {
                 onClick={() => setActiveTab('bikes')}
                 className="w-full sm:w-auto px-6 py-3.5 bg-white hover:bg-stone-100 text-stone-950 font-bold rounded-lg transition-colors text-sm border-2 border-amber-400 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Velosipēdi pārdošanā (no €248)</span>
+                <span>Velosipēdi pārdošanā ({BIKES_FOR_SALE.length} modeļi)</span>
                 <ArrowRight className="w-4 h-4 text-amber-600" />
               </button>
             </div>
