@@ -12,7 +12,6 @@ import {
 } from '../../utils/invoiceEmail';
 import {
   ArrowRight,
-  Banknote,
   Building,
   Check,
   ChevronDown,
@@ -30,7 +29,7 @@ import {
 } from 'lucide-react';
 
 type CheckoutStep = 1 | 2 | 3 | 4;
-type PaymentMethodType = 'incredit' | 'card' | 'banklink' | 'cash_onsite';
+type PaymentMethodType = 'incredit' | 'card' | 'banklink';
 type DeliveryOptionId = 'store_pickup' | 'van_ventspils' | 'van_usma' | 'van_talsi' | 'service_included';
 
 interface DeliveryOptionConfig {
@@ -126,7 +125,6 @@ export const PaymentGatewayModal: React.FC = () => {
   const [firstPaymentEur, setFirstPaymentEur] = useState<number>(0);
   const [extraTradeIn, setExtraTradeIn] = useState<boolean>(false);
   const [extraTradeInBike, setExtraTradeInBike] = useState<string>('');
-  const [cashSubMethod, setCashSubMethod] = useState<'store_cash_card' | 'courier_cash_pos'>('store_cash_card');
 
   // Card inputs (always empty by default)
   const [cardNumber, setCardNumber] = useState('');
@@ -163,6 +161,7 @@ export const PaymentGatewayModal: React.FC = () => {
     setPromoInput('');
     setAppliedPromo(null);
     setPromoMessage(null);
+    setPaymentMethod('incredit');
     setFirstPaymentEur(0);
 
     // Clear sensitive/card fields on every open
@@ -357,11 +356,6 @@ export const PaymentGatewayModal: React.FC = () => {
 
   const handleStep3Continue = () => {
     setStepError(null);
-    if (deliveryOptionId === 'store_pickup' && paymentMethod === 'cash_onsite') {
-      setCashSubMethod('store_cash_card');
-    } else if (deliveryOptionId !== 'store_pickup' && paymentMethod === 'cash_onsite') {
-      setCashSubMethod('courier_cash_pos');
-    }
     setUnlockedStep(4);
     setActiveStep(4);
   };
@@ -414,11 +408,7 @@ export const PaymentGatewayModal: React.FC = () => {
             ? digitsOnly.length >= 4
               ? `Bankas karte (••• ${digitsOnly.slice(-4)})`
               : 'Bankas karte (Visa / Mastercard)'
-            : paymentMethod === 'banklink'
-              ? `${selectedBank.toUpperCase()} internetbanka`
-              : cashSubMethod === 'store_cash_card'
-                ? 'Skaidrā naudā vai ar karti veikalā (Rindas iela 44)'
-                : 'Skaidrā naudā vai terminālī piegādes brīdī';
+            : `${selectedBank.toUpperCase()} internetbanka`;
 
       const guaranteeDuration =
         checkoutPayload.type === 'rental'
@@ -568,10 +558,7 @@ export const PaymentGatewayModal: React.FC = () => {
     if (paymentMethod === 'card') {
       return `Droši apmaksāt ar karti (${formatPrice(grandTotalEur)})`;
     }
-    if (paymentMethod === 'banklink') {
-      return `Turpināt uz ${bankLabels[selectedBank]} (${formatPrice(grandTotalEur)})`;
-    }
-    return `Apstiprināt pasūtījumu — apmaksa uz vietas (${formatPrice(grandTotalEur)})`;
+    return `Turpināt uz ${bankLabels[selectedBank]} (${formatPrice(grandTotalEur)})`;
   };
 
   return (
@@ -613,11 +600,9 @@ export const PaymentGatewayModal: React.FC = () => {
 
               <div className="space-y-1.5">
                 <h3 className="text-2xl font-bold text-stone-950 font-heading">
-                  {paymentMethod === 'cash_onsite'
-                    ? 'Pasūtījums apstiprināts un rezervēts!'
-                    : paymentMethod === 'incredit'
-                      ? 'Pasūtījums reģistrēts Incredit nomaksai!'
-                      : 'Maksājums apstiprināts un pasūtījums pieņemts!'}
+                  {paymentMethod === 'incredit'
+                    ? 'Pasūtījums reģistrēts Incredit nomaksai!'
+                    : 'Maksājums apstiprināts un pasūtījums pieņemts!'}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
                   Paldies, <strong className="text-stone-900">{confirmedOrder.customer.name}</strong>! Jūsu pasūtījuma
@@ -1434,7 +1419,7 @@ export const PaymentGatewayModal: React.FC = () => {
                         <h3 className="font-bold text-sm sm:text-base text-stone-950 font-heading">Maksājums</h3>
                         {activeStep !== 4 && (
                           <p className="text-xs text-stone-500 mt-0.5">
-                            Incredit nomaksa · Bankas karte · Internetbanka · Skaidrā naudā / POS uz vietas
+                            Incredit nomaksa · Bankas karte · Internetbanka
                           </p>
                         )}
                       </div>
@@ -1719,105 +1704,6 @@ export const PaymentGatewayModal: React.FC = () => {
                             <p className="text-[11px] text-stone-500">
                               Maksājums tiek apstiprināts caur Tavas izvēlētās bankas drošo autentifikāciju (Smart-ID /
                               kodu kalkulators).
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* 5. SKAIDRĀ NAUDĀ VAI AR KARTI UZ VIETAS */}
-                      <div
-                        className={`rounded-xl border transition-all overflow-hidden ${
-                          paymentMethod === 'cash_onsite'
-                            ? 'border-stone-900 ring-1 ring-stone-900/20'
-                            : 'border-stone-200'
-                        }`}
-                      >
-                        <label
-                          onClick={() => setPaymentMethod('cash_onsite')}
-                          className={`p-4 flex items-center justify-between gap-3 cursor-pointer ${
-                            paymentMethod === 'cash_onsite' ? 'bg-amber-50/50' : 'bg-white hover:bg-stone-50'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="radio"
-                              name="paymentMethod"
-                              checked={paymentMethod === 'cash_onsite'}
-                              onChange={() => setPaymentMethod('cash_onsite')}
-                              className="accent-stone-900"
-                            />
-                            <div>
-                              <div className="font-bold text-sm text-stone-950 flex items-center gap-1.5">
-                                <Banknote className="w-4 h-4 text-amber-700" />
-                                <span>Maksāt skaidrā naudā vai ar karti uz vietas / piegādē</span>
-                              </div>
-                              <div className="text-[11px] text-stone-500">
-                                Veikalā Rindas ielā 44 vai pie servisa busa šofera saņemšanas brīdī (€0 komisija)
-                              </div>
-                            </div>
-                          </div>
-                          <span className="font-mono font-bold text-stone-950 shrink-0 tabular-nums">
-                            {formatPrice(grandTotalEur)}
-                          </span>
-                        </label>
-
-                        {paymentMethod === 'cash_onsite' && (
-                          <div className="p-4 bg-stone-50 border-t border-stone-200 space-y-3">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                              <button
-                                type="button"
-                                onClick={() => setCashSubMethod('store_cash_card')}
-                                className={`p-3 rounded-lg border text-left cursor-pointer ${
-                                  cashSubMethod === 'store_cash_card'
-                                    ? 'border-stone-900 bg-white font-semibold text-stone-950 shadow-xs'
-                                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
-                                }`}
-                              >
-                                <div className="font-bold">Veikalā Rindas ielā 44</div>
-                                <div className="text-[11px] text-stone-500">
-                                  Skaidrā naudā vai ar karti saņemot velosipēdu Ventspilī
-                                </div>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setCashSubMethod('courier_cash_pos')}
-                                className={`p-3 rounded-lg border text-left cursor-pointer ${
-                                  cashSubMethod === 'courier_cash_pos'
-                                    ? 'border-stone-900 bg-white font-semibold text-stone-950 shadow-xs'
-                                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
-                                }`}
-                              >
-                                <div className="font-bold">Pie VentVelo servisa busa šofera</div>
-                                <div className="text-[11px] text-stone-500">
-                                  Skaidrā naudā vai mobilajā POS terminālī pie durvīm
-                                </div>
-                              </button>
-                            </div>
-
-                            <label className="flex items-center gap-2 pt-2 border-t border-stone-200 cursor-pointer text-stone-800">
-                              <input
-                                type="checkbox"
-                                checked={extraTradeIn}
-                                onChange={(e) => setExtraTradeIn(e.target.checked)}
-                                className="accent-stone-900"
-                              />
-                              <span className="font-medium">
-                                Vēlos nodot veco velosipēdu novērtēšanai un cenas samazināšanai uz vietas
-                              </span>
-                            </label>
-                            {extraTradeIn && (
-                              <input
-                                type="text"
-                                value={extraTradeInBike}
-                                onChange={(e) => setExtraTradeInBike(e.target.value)}
-                                placeholder="Vecā velosipēda marka un apraksts..."
-                                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
-                              />
-                            )}
-
-                            <p className="text-[11px] text-stone-600 leading-relaxed">
-                              Tiešsaistē šobrīd nekas netiek ieturēts — mēs rezervējam velosipēdu, un samaksu veic
-                              pēc tā apskates un pārbaudes.
                             </p>
                           </div>
                         )}
