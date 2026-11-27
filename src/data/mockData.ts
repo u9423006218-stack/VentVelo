@@ -34,9 +34,9 @@ export const WORKSHOP_BRANCHES = [
     id: 'rindas44',
     name: 'VentVelo velodarbnīca un veikals – Rindas iela 44',
     address: 'Rindas iela 44, Ventspils, LV-3602 (Pārventa)',
-    phone: '+371 27583888',
+    phone: '+371 27 304 027',
     hours: 'Pirmd. – Piektd.: 10:00 – 18:00 (Sestd.: 10:00 – 15:00)',
-    email: 'melnakmens@gmail.com',
+    email: 'ventspilsvelo@gmail.com',
     isMain: true,
   },
 ];
@@ -524,7 +524,7 @@ export const INITIAL_NOTIFICATIONS: EmailNotification[] = [
             </ul>
           </div>
           <p style="font-size: 14px;">Jūs jebkurā brīdī varat sekot līdzi meistara darba gaitai savā tiešsaistes VentVelo Garāžas profilā ar kodu <strong>VV-8492-LV</strong>.</p>
-          <p style="font-size: 13px; color: #78716c; margin-top: 24px;">Jautājumu gadījumā zvaniet meistaram tieši uz darbnīcu: +371 27583888 vai rakstiet uz melnakmens@gmail.com.</p>
+          <p style="font-size: 13px; color: #78716c; margin-top: 24px;">Jautājumu gadījumā zvaniet meistaram tieši uz darbnīcu: +371 27 304 027 vai rakstiet uz ventspilsvelo@gmail.com.</p>
         </div>
       </div>
     `,

@@ -82,7 +82,7 @@ export const EmailNotificationDrawer: React.FC = () => {
               <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-stone-500">No:</span>
-                  <span className="font-mono text-stone-900 font-semibold">VentVelo serviss &lt;melnakmens@gmail.com&gt;</span>
+                  <span className="font-mono text-stone-900 font-semibold">VentVelo serviss &lt;ventspilsvelo@gmail.com&gt;</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-stone-500">Kam:</span>

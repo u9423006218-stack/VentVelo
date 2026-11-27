@@ -79,8 +79,10 @@ export const Footer: React.FC = () => {
                 VentVelo darbnīca un salons
               </p>
               <p className="mt-0.5">Rindas iela 44, Ventspils, LV-3602 (Pārventa)</p>
-              <p className="text-stone-500 mt-1 flex items-center gap-1">
-                <Phone className="w-3 h-3" /> +371 27583888
+              <p className="mt-1">
+                <a href="tel:+37127304027" className="text-stone-400 hover:text-amber-400 transition-colors inline-flex items-center gap-1">
+                  <Phone className="w-3 h-3" /> +371 27 304 027
+                </a>
               </p>
               <p className="text-stone-500 flex items-center gap-1">
                 <Clock className="w-3 h-3" /> Pirmd. – Piektd.: 10:00 – 18:00
@@ -160,7 +162,7 @@ export const Footer: React.FC = () => {
           <div className="pt-3 space-y-2 text-xs">
             <div className="text-stone-400 flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-amber-400" />
-              <a href="mailto:melnakmens@gmail.com" className="hover:text-amber-400 transition-colors">melnakmens@gmail.com</a>
+              <a href="mailto:ventspilsvelo@gmail.com" className="hover:text-amber-400 transition-colors">ventspilsvelo@gmail.com</a>
             </div>
             <div>
               <a

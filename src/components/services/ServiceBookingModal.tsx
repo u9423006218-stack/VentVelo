@@ -483,7 +483,7 @@ export const ServiceBookingModal: React.FC = () => {
                           {branch.hours}
                         </span>
                         <span>·</span>
-                        <a href={`tel:${branch.phone}`} className="text-stone-700 font-medium hover:text-amber-600">
+                        <a href={`tel:${branch.phone.replace(/\s+/g, '')}`} className="text-stone-700 font-medium hover:text-amber-600">
                           {branch.phone}
                         </a>
                       </div>

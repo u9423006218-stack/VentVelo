@@ -465,7 +465,7 @@ export const PaymentGatewayModal: React.FC = () => {
 
       const email: EmailNotification = {
         id: `em_${Date.now()}`,
-        recipientEmail: customerEmail.trim() || 'melnakmens@gmail.com',
+        recipientEmail: customerEmail.trim() || 'ventspilsvelo@gmail.com',
         recipientName: fullName,
         subject: `VentVelo pasūtījums apstiprināts [${orderNum}]`,
         previewText: `Pasūtījums ${orderNum} (${formatPrice(grandTotalEur)}) reģistrēts. Norēķinu veids: ${resolvedMethod}.`,

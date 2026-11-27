@@ -47,11 +47,11 @@ export const MobileVanFleet: React.FC = () => {
               <span>Pieteikt busiņa izbraukumu</span>
             </button>
             <a
-              href="tel:+37127583888"
+              href="tel:+37127304027"
               className="px-5 py-3.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm font-medium rounded-lg transition-colors border border-stone-700 flex items-center gap-2"
             >
               <PhoneCall className="w-4 h-4 text-amber-400" />
-              <span>Dispečera tālrunis: +371 27583888</span>
+              <span>Dispečera tālrunis: +371 27 304 027</span>
             </a>
             <a
               href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"

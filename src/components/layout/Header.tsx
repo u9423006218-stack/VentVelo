@@ -61,7 +61,9 @@ export const Header: React.FC = () => {
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>
-                    Meistars <strong className="text-amber-300">Raivis</strong>: +371 27583888 · melnakmens@gmail.com
+                    Meistars <strong className="text-amber-300">Raivis</strong>:{' '}
+                    <a href="tel:+37127304027" className="hover:text-amber-300 underline">+371 27 304 027</a> ·{' '}
+                    <a href="mailto:ventspilsvelo@gmail.com" className="hover:text-amber-300 underline">ventspilsvelo@gmail.com</a>
                   </span>
                 </div>
               ))}

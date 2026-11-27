@@ -470,7 +470,7 @@ export const ServiceCatalog: React.FC = () => {
                     {branch.hours}
                   </span>
                   <div className="flex items-center gap-3">
-                    <a href={`tel:${branch.phone}`} className="font-semibold text-stone-800 hover:text-amber-600 flex items-center gap-1">
+                    <a href={`tel:${branch.phone.replace(/\s+/g, '')}`} className="font-semibold text-stone-800 hover:text-amber-600 flex items-center gap-1">
                       <PhoneCall className="w-3 h-3" />
                       {branch.phone}
                     </a>
