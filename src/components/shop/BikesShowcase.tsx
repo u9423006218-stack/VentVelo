@@ -868,7 +868,7 @@ export const BikesShowcase: React.FC = () => {
                 Rādīt visus velosipēdus
               </button>
               <a
-                href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                href="https://wa.me/37127583888"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg"

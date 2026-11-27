@@ -161,7 +161,10 @@ export const PaymentGatewayModal: React.FC = () => {
     setPromoInput('');
     setAppliedPromo(null);
     setPromoMessage(null);
-    setPaymentMethod('incredit');
+    const isRentalOrder =
+      checkoutPayload.type === 'rental' ||
+      (checkoutPayload.type === 'cart' && cart.some((item) => item.type === 'rental'));
+    setPaymentMethod(isRentalOrder ? 'card' : 'incredit');
     setFirstPaymentEur(0);
 
     // Clear sensitive/card fields on every open
@@ -212,6 +215,10 @@ export const PaymentGatewayModal: React.FC = () => {
   }, [isCheckoutModalOpen, checkoutPayload]);
 
   if (!isCheckoutModalOpen || !checkoutPayload) return null;
+
+  const isRentalCheckout =
+    checkoutPayload.type === 'rental' ||
+    (checkoutPayload.type === 'cart' && cart.some((item) => item.type === 'rental'));
 
   const subtotalEur = Math.max(0, Math.round(checkoutPayload.totalEur));
   const discountEur = appliedPromo === 'VENTVELO5' ? Math.round(subtotalEur * 0.05) : 0;
@@ -356,6 +363,9 @@ export const PaymentGatewayModal: React.FC = () => {
 
   const handleStep3Continue = () => {
     setStepError(null);
+    if (isRentalCheckout && paymentMethod === 'incredit') {
+      setPaymentMethod('card');
+    }
     setUnlockedStep(4);
     setActiveStep(4);
   };
@@ -728,7 +738,7 @@ export const PaymentGatewayModal: React.FC = () => {
                   Aizvērt
                 </button>
                 <a
-                  href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                  href="https://wa.me/37127583888"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-xs inline-flex items-center gap-1.5"
@@ -823,7 +833,7 @@ export const PaymentGatewayModal: React.FC = () => {
                       </span>
                     </div>
 
-                    {activeStep === 4 && paymentMethod === 'incredit' && (
+                    {activeStep === 4 && !isRentalCheckout && paymentMethod === 'incredit' && (
                       <div className="mt-2 pt-2.5 border-t border-dashed border-stone-200 space-y-1 text-[11px]">
                         {clampedFirstPayment > 0 && (
                           <div className="flex justify-between text-stone-600">
@@ -879,9 +889,11 @@ export const PaymentGatewayModal: React.FC = () => {
                     <span>256-bitu SSL šifrēts savienojums</span>
                   </div>
                   <p className="leading-relaxed">
-                    Jautājumi par Incredit nomaksu vai piegādi?{' '}
+                    {isRentalCheckout
+                      ? 'Jautājumi par nomu vai piegādi? '
+                      : 'Jautājumi par Incredit nomaksu vai piegādi? '}
                     <a
-                      href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                      href="https://wa.me/37127583888"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-stone-900 font-semibold underline"
@@ -1419,7 +1431,9 @@ export const PaymentGatewayModal: React.FC = () => {
                         <h3 className="font-bold text-sm sm:text-base text-stone-950 font-heading">Maksājums</h3>
                         {activeStep !== 4 && (
                           <p className="text-xs text-stone-500 mt-0.5">
-                            Incredit nomaksa · Bankas karte · Internetbanka
+                            {isRentalCheckout
+                              ? 'Bankas karte · Internetbanka'
+                              : 'Incredit nomaksa · Bankas karte · Internetbanka'}
                           </p>
                         )}
                       </div>
@@ -1429,11 +1443,13 @@ export const PaymentGatewayModal: React.FC = () => {
                   {activeStep === 4 && (
                     <form onSubmit={handleSubmitOrder} className="p-5 sm:p-6 space-y-4 text-xs">
                       <p className="text-stone-600 leading-relaxed">
-                        Izvēlies sev piemērotāko norēķinu veidu — atverot konkrēto sadaļu, redzēsi precīzus nosacījumus un
-                        mēneša maksājumu aprēķinu.
+                        {isRentalCheckout
+                          ? 'Izvēlies sev piemērotāko apmaksas veidu velosipēda nomai.'
+                          : 'Izvēlies sev piemērotāko norēķinu veidu — atverot konkrēto sadaļu, redzēsi precīzus nosacījumus un mēneša maksājumu aprēķinu.'}
                       </p>
 
                       {/* 1. INCREDIT */}
+                      {!isRentalCheckout && (
                       <div
                         className={`rounded-xl border transition-all overflow-hidden ${
                           paymentMethod === 'incredit'
@@ -1551,6 +1567,7 @@ export const PaymentGatewayModal: React.FC = () => {
                           </div>
                         )}
                       </div>
+                      )}
 
                       {/* 3. BANKAS KARTE */}
                       <div

@@ -80,8 +80,8 @@ export const Footer: React.FC = () => {
               </p>
               <p className="mt-0.5">Rindas iela 44, Ventspils, LV-3602 (Pārventa)</p>
               <p className="mt-1">
-                <a href="tel:+37127304027" className="text-stone-400 hover:text-amber-400 transition-colors inline-flex items-center gap-1">
-                  <Phone className="w-3 h-3" /> +371 27 304 027
+                <a href="tel:+37127583888" className="text-stone-400 hover:text-amber-400 transition-colors inline-flex items-center gap-1">
+                  <Phone className="w-3 h-3" /> +371 27 583 888
                 </a>
               </p>
               <p className="text-stone-500 flex items-center gap-1">
@@ -158,7 +158,7 @@ export const Footer: React.FC = () => {
             </div>
             <div>
               <a
-                href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                href="https://wa.me/37127583888"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"

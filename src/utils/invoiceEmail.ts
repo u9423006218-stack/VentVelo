@@ -135,7 +135,7 @@ function buildPdfDocDefinition(payload: InvoiceDispatchPayload): TDocumentDefini
                   margin: [0, 3, 0, 0],
                 },
                 {
-                  text: 'Rindas iela 44, Ventspils, LV-3602 · Tālr. +371 27 304 027 · ventspilsvelo@gmail.com',
+                  text: 'Rindas iela 44, Ventspils, LV-3602 · Tālr. +371 27 583 888 · ventspilsvelo@gmail.com',
                   fontSize: 8.5,
                   color: '#a8a29e',
                   margin: [0, 2, 0, 0],
@@ -267,7 +267,7 @@ function buildPdfDocDefinition(payload: InvoiceDispatchPayload): TDocumentDefini
       margin: [0, 0, 0, 26],
     },
     {
-      text: 'Paldies par uzticību VentVelo! Jautājumu gadījumā sazinieties ar meistaru Raivi pa tālruni +371 27 304 027 vai e-pastā ventspilsvelo@gmail.com.',
+      text: 'Paldies par uzticību VentVelo! Jautājumu gadījumā sazinieties ar meistaru Raivi pa tālruni +371 27 583 888 vai e-pastā ventspilsvelo@gmail.com.',
       fontSize: 9,
       color: '#78716c',
       margin: [0, 12, 0, 0],
@@ -336,7 +336,7 @@ export function buildInvoiceHtml(payload: InvoiceDispatchPayload): string {
         <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
           <div>
             <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.4px;"><span style="color: #f59e0b;">Vent</span>Velo</div>
-            <div style="font-size: 12px; color: #a8a29e; margin-top: 2px;">SIA VentVelo · Rindas iela 44, Ventspils · +371 27 304 027</div>
+            <div style="font-size: 12px; color: #a8a29e; margin-top: 2px;">SIA VentVelo · Rindas iela 44, Ventspils · +371 27 583 888</div>
           </div>
           <div style="text-align: right;">
             <div style="font-size: 12px; text-transform: uppercase; color: #fbbf24; font-weight: 700;">${payload.kind === 'service' ? 'Servisa tāme / Rēķins' : 'Elektroniskais rēķins'}</div>
@@ -397,7 +397,7 @@ export function buildInvoiceHtml(payload: InvoiceDispatchPayload): string {
         </div>
 
         <p style="margin: 22px 0 0; font-size: 12px; color: #78716c; border-top: 1px solid #f5f5f4; padding-top: 14px;">
-          Jautājumu gadījumā sazinieties ar meistaru Raivi: <strong>+371 27 304 027</strong> vai <strong>${STORE_OFFICIAL_EMAIL}</strong>.
+          Jautājumu gadījumā sazinieties ar meistaru Raivi: <strong>+371 27 583 888</strong> vai <strong>${STORE_OFFICIAL_EMAIL}</strong>.
         </p>
       </div>
     </div>
@@ -437,7 +437,7 @@ function buildFormPayloadFields(payload: InvoiceDispatchPayload): {
     'Apmaksas veids': payload.paymentMethodLabel,
     'Kopā apmaksai (ar PVN)': payload.totalFormatted,
     ...(payload.notes ? { Piezīmes: payload.notes } : {}),
-    Pārdevējs: `SIA VentVelo · Rindas iela 44, Ventspils · +371 27 304 027 · ${STORE_OFFICIAL_EMAIL}`,
+    Pārdevējs: `SIA VentVelo · Rindas iela 44, Ventspils · +371 27 583 888 · ${STORE_OFFICIAL_EMAIL}`,
   };
 
   if (shouldCcCustomer) {

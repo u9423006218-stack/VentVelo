@@ -9,7 +9,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-const WHATSAPP_URL = 'https://api.whatsapp.com/message/CRYR7PFOHNY2J1';
+const WHATSAPP_URL = 'https://wa.me/37127583888';
 
 export const SupportChat: React.FC = () => {
   const { openBookingWithService, setActiveTab } = useApp();
@@ -118,7 +118,7 @@ export const SupportChat: React.FC = () => {
 
     if (q.includes('darba laik') || q.includes('laik') || q.includes('adres') || q.includes('kur atrodaties') || q.includes('filiāl') || q.includes('18')) {
       return {
-        text: 'VentVelo strādā Ventspilī jau 18 gadus (kopš 2008. gada)! Mūsu darbnīca un velosalons atrodas Ventspilī, Rindas ielā 44 (Pārventā).\nDarba laiks: Pirmd.–Piektd. 10:00–18:00 (Sestd. 10:00–15:00), tālr. +371 27 304 027, e-pasts: ventspilsvelo@gmail.com.',
+        text: 'VentVelo strādā Ventspilī jau 18 gadus (kopš 2008. gada)! Mūsu darbnīca un velosalons atrodas Ventspilī, Rindas ielā 44 (Pārventā).\nDarba laiks: Pirmd.–Piektd. 10:00–18:00 (Sestd. 10:00–15:00), tālr. +371 27 583 888, e-pasts: ventspilsvelo@gmail.com.',
         quickReplies: ['Pieteikt servisa busiņu', 'Skatīt velosipēdus'],
       };
     }

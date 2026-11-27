@@ -423,7 +423,7 @@ export const ServiceCatalog: React.FC = () => {
                       {branch.phone}
                     </a>
                     <a
-                      href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                      href="https://wa.me/37127583888"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
