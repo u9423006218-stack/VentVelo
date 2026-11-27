@@ -138,17 +138,6 @@ export const Header: React.FC = () => {
           >
             Servisa busa maršruti
           </button>
-
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`whitespace-nowrap shrink-0 transition-colors cursor-pointer py-1 ${
-              activeTab === 'dashboard' 
-                ? 'text-stone-950 font-semibold border-b-2 border-stone-950' 
-                : 'hover:text-stone-950'
-            }`}
-          >
-            Mana garāža un statuss
-          </button>
         </nav>
 
         {/* Zone 3: Actions (Currency selector, email inbox, cart, primary CTA) */}
@@ -244,12 +233,6 @@ export const Header: React.FC = () => {
               className={`text-left py-2 px-3 rounded-md transition-colors ${activeTab === 'van_fleet' ? 'bg-stone-100 font-semibold' : 'hover:bg-stone-50'}`}
             >
               Servisa busa maršruti (Ventspils, Usma, Talsi)
-            </button>
-            <button
-              onClick={() => { setActiveTab('dashboard'); setMobileMenuOpen(false); }}
-              className={`text-left py-2 px-3 rounded-md transition-colors ${activeTab === 'dashboard' ? 'bg-stone-100 font-semibold' : 'hover:bg-stone-50'}`}
-            >
-              Mana garāža un remonta statuss
             </button>
           </div>
 

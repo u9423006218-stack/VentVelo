@@ -3,6 +3,13 @@ import { useApp } from '../../context/AppContext';
 import { CartItem, EmailNotification, OrderRecord } from '../../types';
 import { BikeImage } from '../common/BikeImage';
 import {
+  buildInvoiceHtml,
+  downloadInvoiceHtml,
+  InvoiceDispatchPayload,
+  sendInvoiceEmails,
+  STORE_OFFICIAL_EMAIL,
+} from '../../utils/invoiceEmail';
+import {
   ArrowRight,
   Banknote,
   Building,
@@ -10,7 +17,9 @@ import {
   ChevronDown,
   ChevronUp,
   CreditCard,
+  Download,
   Lock,
+  Mail,
   MapPin,
   Pencil,
   ShieldCheck,
@@ -78,8 +87,8 @@ export const PaymentGatewayModal: React.FC = () => {
     addNotification,
     clearCart,
     cart,
-    setActiveTab,
     setIsSecurityModalOpen,
+    showToast,
   } = useApp();
 
   // Stepper & Accordion State
@@ -133,6 +142,8 @@ export const PaymentGatewayModal: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<OrderRecord | null>(null);
+  const [lastInvoicePayload, setLastInvoicePayload] = useState<InvoiceDispatchPayload | null>(null);
+  const [emailDispatchState, setEmailDispatchState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   // Reset form cleanly whenever modal opens with a payload
   useEffect(() => {
@@ -144,6 +155,8 @@ export const PaymentGatewayModal: React.FC = () => {
     setIsProcessing(false);
     setIsSuccess(false);
     setConfirmedOrder(null);
+    setLastInvoicePayload(null);
+    setEmailDispatchState('idle');
     setPromoInput('');
     setAppliedPromo(null);
     setPromoMessage(null);
@@ -463,48 +476,68 @@ export const PaymentGatewayModal: React.FC = () => {
       setConfirmedOrder(newOrder);
       setIsSuccess(true);
 
+      const invoicePayload: InvoiceDispatchPayload = {
+        orderNumber: orderNum,
+        createdAt: newOrder.createdAt,
+        customerName: newOrder.customer.name,
+        customerEmail: customerEmail.trim(),
+        customerPhone: customerPhone.trim(),
+        address: fullAddress,
+        deliveryLabel: selectedDeliveryConfig.title,
+        paymentMethodLabel: resolvedMethod,
+        items: summaryItems.map((it) => ({
+          name: it.name,
+          details: it.details,
+          quantity: it.quantity,
+          unitPriceFormatted: formatPrice(it.priceEur),
+          lineTotalFormatted: formatPrice(it.priceEur * it.quantity),
+        })),
+        subtotalFormatted: formatPrice(subtotalEur),
+        discountFormatted: discountEur > 0 ? formatPrice(discountEur) : undefined,
+        shippingFormatted: shippingEur === 0 ? 'Bezmaksas (€0)' : formatPrice(shippingEur),
+        totalFormatted: formatPrice(grandTotalEur),
+        notes: [
+          extraTradeIn && extraTradeInBike ? `Vecā riteņa maiņa: ${extraTradeInBike}` : '',
+          deliveryNotes.trim() ? `Piegādes piezīme: ${deliveryNotes.trim()}` : '',
+          companyRegNo.trim() ? `Uzņēmuma Reģ./PVN Nr.: ${companyRegNo.trim()}` : '',
+        ]
+          .filter(Boolean)
+          .join(' | '),
+        kind: checkoutPayload.type === 'service' ? 'service' : 'order',
+      };
+
+      setLastInvoicePayload(invoicePayload);
+      setEmailDispatchState('sending');
+
       const email: EmailNotification = {
         id: `em_${Date.now()}`,
-        recipientEmail: customerEmail.trim() || 'ventspilsvelo@gmail.com',
+        recipientEmail: customerEmail.trim() || STORE_OFFICIAL_EMAIL,
         recipientName: fullName,
-        subject: `VentVelo pasūtījums apstiprināts [${orderNum}]`,
+        subject: `VentVelo Rēķins #${orderNum} [${formatPrice(grandTotalEur)}]`,
         previewText: `Pasūtījums ${orderNum} (${formatPrice(grandTotalEur)}) reģistrēts. Norēķinu veids: ${resolvedMethod}.`,
         category: 'order_confirmation',
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+        timestamp: newOrder.createdAt,
         referenceId: orderNum,
         read: false,
-        htmlContent: `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917; line-height: 1.6;">
-            <div style="background-color: #1c1917; padding: 24px; color: #ffffff; border-radius: 8px 8px 0 0;">
-              <h2 style="margin: 0; font-size: 20px; font-weight: 700;">VentVelo pasūtījuma apstiprinājums</h2>
-              <p style="margin: 4px 0 0; font-size: 13px; color: #a8a29e;">Pasūtījuma nr.: ${orderNum}</p>
-            </div>
-            <div style="padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
-              <p>Labdien, ${fullName}! Jūsu pasūtījums ir veiksmīgi pieņemts.</p>
-              <div style="background: #fafaf9; border-radius: 6px; padding: 16px; margin: 20px 0; border: 1px solid #e7e5e4;">
-                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #78716c;">PASŪTĪJUMA DETAĻAS</p>
-                <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #1c1917;">
-                  <li><strong>Prece / Pakalpojums:</strong> ${checkoutPayload.title}</li>
-                  <li><strong>Piegāde:</strong> ${selectedDeliveryConfig.title} (${shippingEur === 0 ? 'Bezmaksas' : formatPrice(shippingEur)})</li>
-                  <li><strong>Adrese:</strong> ${fullAddress}</li>
-                  <li><strong>Kopā (ar PVN):</strong> ${formatPrice(grandTotalEur)}</li>
-                  <li><strong>Apmaksas veids:</strong> ${resolvedMethod}</li>
-                  ${extraTradeIn && extraTradeInBike ? `<li><strong>Vecā riteņa maiņa:</strong> ${extraTradeInBike}</li>` : ''}
-                </ul>
-              </div>
-              <p style="font-size: 13px; color: #57534e;">
-                Mūsu meistars Raivis sazināsies ar Jums pa tālruni ${customerPhone}, lai precizētu saņemšanas vai līzinga parakstīšanas laiku.
-              </p>
-            </div>
-          </div>
-        `,
+        htmlContent: buildInvoiceHtml(invoicePayload),
       };
       addNotification(email);
+
+      void sendInvoiceEmails(invoicePayload).then((res) => {
+        setEmailDispatchState(res.ok ? 'sent' : 'error');
+        if (res.ok) {
+          showToast(
+            res.customerIncluded
+              ? `Rēķins #${orderNum} nosūtīts uz ${customerEmail.trim()} un ${STORE_OFFICIAL_EMAIL}!`
+              : `Rēķins #${orderNum} nosūtīts uz ${STORE_OFFICIAL_EMAIL}!`
+          );
+        }
+      });
 
       if (checkoutPayload.type === 'cart') {
         clearCart();
       }
-    }, 900);
+    }, 700);
   };
 
   const handleClose = () => {
@@ -597,6 +630,40 @@ export const PaymentGatewayModal: React.FC = () => {
                 </div>
               )}
 
+              {/* Automatic Invoice Dispatch Status */}
+              <div
+                className={`rounded-xl p-3.5 text-left text-xs border flex items-start gap-2.5 ${
+                  emailDispatchState === 'sent'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
+                    : emailDispatchState === 'error'
+                      ? 'bg-amber-50 border-amber-200 text-stone-800'
+                      : 'bg-stone-50 border-stone-200 text-stone-700'
+                }`}
+              >
+                <Mail className="w-4 h-4 shrink-0 mt-0.5 text-emerald-700" />
+                <div className="space-y-0.5 leading-relaxed">
+                  {emailDispatchState === 'sending' && (
+                    <p className="font-medium">
+                      Sūta elektronisko rēķinu uz <strong>{confirmedOrder.customer.email}</strong> un{' '}
+                      <strong>{STORE_OFFICIAL_EMAIL}</strong>...
+                    </p>
+                  )}
+                  {emailDispatchState === 'sent' && (
+                    <p>
+                      <strong className="font-semibold">Rēķins nosūtīts automātiski!</strong> Rēķina kopija nosūtīta uz{' '}
+                      <strong>{confirmedOrder.customer.email}</strong> un veikala oficiālo e-pastu{' '}
+                      <strong>{STORE_OFFICIAL_EMAIL}</strong>.
+                    </p>
+                  )}
+                  {emailDispatchState === 'error' && (
+                    <p>
+                      Pasūtījums apstiprināts! Tiešsaistes rēķina automātiskā piegāde aizkavējās — vari lejupielādēt
+                      rēķinu zemāk vai sazināties WhatsApp ar meistaru.
+                    </p>
+                  )}
+                </div>
+              </div>
+
               <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs space-y-2 text-left">
                 <div className="flex justify-between gap-4">
                   <span className="text-stone-500">Summa (ar PVN):</span>
@@ -619,15 +686,22 @@ export const PaymentGatewayModal: React.FC = () => {
               </div>
 
               <div className="pt-2 flex flex-wrap justify-center gap-3">
+                {lastInvoicePayload && (
+                  <button
+                    type="button"
+                    onClick={() => downloadInvoiceHtml(lastInvoicePayload)}
+                    className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-300 rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Lejupielādēt rēķinu</span>
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => {
-                    handleClose();
-                    setActiveTab('dashboard');
-                  }}
+                  onClick={handleClose}
                   className="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-xs"
                 >
-                  Skatīt pirkumu vēsturē
+                  Aizvērt
                 </button>
                 <a
                   href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"

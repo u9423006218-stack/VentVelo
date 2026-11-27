@@ -4,12 +4,8 @@ import { EmailNotification } from '../../types';
 import { 
   X, 
   Mail, 
-  CheckCheck, 
-  ExternalLink, 
-  Clock, 
   ChevronRight, 
-  ArrowLeft,
-  ShieldCheck 
+  ArrowLeft
 } from 'lucide-react';
 
 export const EmailNotificationDrawer: React.FC = () => {
@@ -17,10 +13,7 @@ export const EmailNotificationDrawer: React.FC = () => {
     isEmailDrawerOpen, 
     setIsEmailDrawerOpen, 
     notifications, 
-    markNotificationRead,
-    setActiveTab,
-    setSelectedTrackingJob,
-    jobs 
+    markNotificationRead
   } = useApp();
 
   const [selectedEmail, setSelectedEmail] = useState<EmailNotification | null>(null);
@@ -30,15 +23,6 @@ export const EmailNotificationDrawer: React.FC = () => {
   const handleOpenEmail = (notif: EmailNotification) => {
     setSelectedEmail(notif);
     markNotificationRead(notif.id);
-  };
-
-  const handleJumpToTrack = (referenceId: string) => {
-    const found = jobs.find(j => j.trackingCode === referenceId);
-    if (found) {
-      setSelectedTrackingJob(found);
-      setActiveTab('dashboard');
-      setIsEmailDrawerOpen(false);
-    }
   };
 
   return (
@@ -103,19 +87,6 @@ export const EmailNotificationDrawer: React.FC = () => {
                 className="border border-stone-200 rounded-xl overflow-hidden shadow-xs bg-white"
                 dangerouslySetInnerHTML={{ __html: selectedEmail.htmlContent }}
               />
-
-              {/* Jump to Track if relevant */}
-              {selectedEmail.referenceId && (
-                <div className="pt-2">
-                  <button
-                    onClick={() => handleJumpToTrack(selectedEmail.referenceId)}
-                    className="w-full py-2.5 px-4 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-xs font-heading"
-                  >
-                    <span>Skatīt remonta gaitu manā velogaražā</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
             </div>
           ) : (
             /* Notification List */

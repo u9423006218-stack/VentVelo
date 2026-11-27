@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { SERVICE_PACKAGES, CUSTOM_REPAIR_ITEMS, VAN_PICKUP_ZONES, WORKSHOP_BRANCHES } from '../../data/mockData';
 import { VanRegion, ServicePackage, CustomRepairItem, MaintenanceJob, EmailNotification } from '../../types';
+import { sendInvoiceEmails, buildInvoiceHtml, InvoiceDispatchPayload, STORE_OFFICIAL_EMAIL } from '../../utils/invoiceEmail';
 import { 
   X, 
   Check, 
@@ -24,7 +25,7 @@ export const ServiceBookingModal: React.FC = () => {
     currency, 
     addJob, 
     addNotification, 
-    setActiveTab, 
+    showToast,
     openCheckout 
   } = useApp();
 
@@ -137,45 +138,61 @@ export const ServiceBookingModal: React.FC = () => {
     // Add job to store
     addJob(newJob);
 
-    // Send automated email notification in natural Latvian
+    const serviceInvoicePayload: InvoiceDispatchPayload = {
+      orderNumber: randomCode,
+      createdAt: newJob.createdAt,
+      customerName: customerName.trim() || 'Klients',
+      customerEmail: customerEmail.trim(),
+      customerPhone: customerPhone.trim(),
+      address:
+        deliveryType === 'van_pickup'
+          ? `${vanAddress.trim() || vanCity}, ${vanRegion}`
+          : `Darbnīca: ${workshopBranch}, Ventspils`,
+      deliveryLabel:
+        deliveryType === 'van_pickup'
+          ? `Servisa buss (${vanRegion}, ${vanDate} ${vanTimeSlot})`
+          : `Nodošana darbnīcā klātienē (${workshopBranch})`,
+      paymentMethodLabel: newJob.paymentMethod || 'Apmaksa pie busiņa / darbnīcas terminālī',
+      items: [
+        {
+          name: currentPkg.name,
+          details: `${bikeBrandModel || 'Velosipēds'} · ${currentPkg.guaranteeMonths} mēn. garantija`,
+          quantity: 1,
+          unitPriceFormatted: formatPrice(currentPkg.priceEur),
+          lineTotalFormatted: formatPrice(currentPkg.priceEur),
+        },
+        ...customItems.map((c) => ({
+          name: c.name,
+          quantity: 1,
+          unitPriceFormatted: formatPrice(c.priceEur),
+          lineTotalFormatted: formatPrice(c.priceEur),
+        })),
+      ],
+      subtotalFormatted: formatPrice(subtotalBeforeVan),
+      shippingFormatted: deliveryType === 'van_pickup' && vanFeeEur > 0 ? formatPrice(vanFeeEur) : 'Bezmaksas (€0)',
+      totalFormatted: formatPrice(grandTotalEur),
+      notes: [
+        bikeSerial ? `Rāmja Nr.: ${bikeSerial}` : '',
+        issueDescription ? `Defekti: ${issueDescription}` : '',
+        vanNotes ? `Piezīmes šoferim: ${vanNotes}` : '',
+      ]
+        .filter(Boolean)
+        .join(' | '),
+      kind: 'service',
+    };
+
+    // Send automated email notification record in natural Latvian
     const emailNotif: EmailNotification = {
       id: `em_${Date.now()}`,
-      recipientEmail: customerEmail,
-      recipientName: customerName,
+      recipientEmail: customerEmail.trim() || STORE_OFFICIAL_EMAIL,
+      recipientName: customerName.trim() || 'Klients',
       subject: `Serviss pieteikts: ${currentPkg.name} [${randomCode}]`,
       previewText: `Paldies! Jūsu velosipēda ${bikeBrandModel || 'apkope'} ir veiksmīgi iekļauta darbnīcas grafikā.`,
       category: 'service_booking',
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      timestamp: newJob.createdAt,
       referenceId: randomCode,
       read: false,
-      htmlContent: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917; line-height: 1.6;">
-          <div style="background-color: #1c1917; padding: 24px; color: #ffffff; border-radius: 8px 8px 0 0;">
-            <h2 style="margin: 0; font-size: 20px; font-weight: 700;">VentVelo servisa pieteikums apstiprināts</h2>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #a8a29e;">Izsekošanas numurs: ${randomCode}</p>
-          </div>
-          <div style="padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
-            <h3 style="margin-top: 0; color: #0c0a09;">Labdien, ${customerName}!</h3>
-            <p>Jūsu pieteikums ir pieņemts. Meistars ir iepazinies ar norādītajiem defektiem un sagatavos visu nepieciešamo darbam.</p>
-            
-            <div style="background: #fafaf9; border-radius: 6px; padding: 16px; margin: 20px 0; border: 1px solid #e7e5e4;">
-              <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #78716c; text-transform: uppercase;">PIETEIKUMA DETAĻAS</p>
-              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #1c1917;">
-                <li><strong>Velosipēds:</strong> ${bikeBrandModel || 'Klienta velosipēds'}</li>
-                <li><strong>Izvēlētā apkope:</strong> ${currentPkg.name} (${formatPrice(currentPkg.priceEur)})</li>
-                ${customItems.length > 0 ? `<li><strong>Papildu darbi:</strong> ${customItems.map(c => c.name).join(', ')}</li>` : ''}
-                <li><strong>Izpilde:</strong> ${deliveryType === 'van_pickup' ? `Izbraukuma buss ${vanRegion} (${vanAddress}, ${vanDate} ${vanTimeSlot})` : `Nodošana darbnīcā klātienē (${workshopBranch})`}</li>
-                <li><strong>Kopējā tāme:</strong> ${formatPrice(grandTotalEur)}</li>
-                <li><strong>Meistara garantija:</strong> ${currentPkg.guaranteeMonths} mēneši visiem darbiem un gultņiem</li>
-              </ul>
-            </div>
-            
-            <p style="font-size: 13px; color: #57534e;">
-              Jūs jebkurā brīdī varat sekot līdzi remonta gaitai VentVelo tiešsaistes garāžā ar kodu <strong>${randomCode}</strong>.
-            </p>
-          </div>
-        </div>
-      `,
+      htmlContent: buildInvoiceHtml(serviceInvoicePayload),
     };
     addNotification(emailNotif);
 
@@ -189,7 +206,17 @@ export const ServiceBookingModal: React.FC = () => {
         title: `Servisa pieteikums: ${currentPkg.name} (${randomCode})`,
       });
     } else {
-      setActiveTab('dashboard');
+      void sendInvoiceEmails(serviceInvoicePayload).then((res) => {
+        if (res.ok) {
+          showToast(
+            res.customerIncluded
+              ? `Pieteikums #${randomCode} un rēķins nosūtīts uz ${customerEmail.trim()} un ${STORE_OFFICIAL_EMAIL}!`
+              : `Pieteikums #${randomCode} nosūtīts uz ${STORE_OFFICIAL_EMAIL}!`
+          );
+        } else {
+          showToast(`Pieteikums #${randomCode} saglabāts! Meistars sazināsies pa tālruni.`);
+        }
+      });
     }
   };
 

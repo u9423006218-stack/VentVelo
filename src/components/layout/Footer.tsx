@@ -143,14 +143,6 @@ export const Footer: React.FC = () => {
             </li>
             <li>
               <button 
-                onClick={() => setActiveTab('dashboard')}
-                className="hover:text-amber-400 transition-colors cursor-pointer"
-              >
-                Mana velogaraža un remonta statuss
-              </button>
-            </li>
-            <li>
-              <button 
                 onClick={() => setIsSecurityModalOpen(true)}
                 className="hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1.5 text-stone-300"
               >

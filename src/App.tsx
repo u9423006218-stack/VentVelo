@@ -7,7 +7,6 @@ import { ServiceBookingModal } from './components/services/ServiceBookingModal';
 import { BikesShowcase } from './components/shop/BikesShowcase';
 import { BikeRentalShowcase } from './components/rental/BikeRentalShowcase';
 import { MobileVanFleet } from './components/van/MobileVanFleet';
-import { UserDashboard } from './components/dashboard/UserDashboard';
 import { CartDrawer } from './components/checkout/CartDrawer';
 import { PaymentGatewayModal } from './components/checkout/PaymentGatewayModal';
 import { EmailNotificationDrawer } from './components/notifications/EmailNotificationDrawer';
@@ -39,7 +38,6 @@ const MainContent: React.FC = () => {
         {activeTab === 'bikes' && <BikesShowcase />}
         {activeTab === 'rental' && <BikeRentalShowcase />}
         {activeTab === 'van_fleet' && <MobileVanFleet />}
-        {activeTab === 'dashboard' && <UserDashboard />}
       </main>
 
       {/* Interactive Modals and Slide-over Drawers */}

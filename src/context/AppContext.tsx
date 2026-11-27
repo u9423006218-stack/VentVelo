@@ -3,24 +3,21 @@ import {
   Currency, 
   CartItem, 
   MaintenanceJob, 
-  UserBike, 
   OrderRecord, 
   EmailNotification, 
-  JobStatus,
   AccessoryProduct 
 } from '../types';
 import { 
   CURRENCY_RATES, 
   INITIAL_MAINTENANCE_JOBS, 
-  INITIAL_USER_GARAGE_BIKES, 
   INITIAL_ORDERS, 
   INITIAL_NOTIFICATIONS,
   ACCESSORY_INVENTORY 
 } from '../data/mockData';
 
 interface AppContextType {
-  activeTab: 'services' | 'bikes' | 'rental' | 'van_fleet' | 'dashboard';
-  setActiveTab: (tab: 'services' | 'bikes' | 'rental' | 'van_fleet' | 'dashboard') => void;
+  activeTab: 'services' | 'bikes' | 'rental' | 'van_fleet';
+  setActiveTab: (tab: 'services' | 'bikes' | 'rental' | 'van_fleet') => void;
   currency: Currency;
   setCurrency: (currency: Currency) => void;
   formatPrice: (priceEur: number) => string;
@@ -34,16 +31,9 @@ interface AppContextType {
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   
-  // Jobs & Tracking
+  // Jobs
   jobs: MaintenanceJob[];
   addJob: (job: MaintenanceJob) => void;
-  updateJobStatus: (jobId: string, status: JobStatus, note?: string) => void;
-  selectedTrackingJob: MaintenanceJob | null;
-  setSelectedTrackingJob: (job: MaintenanceJob | null) => void;
-  
-  // User Garage
-  garageBikes: UserBike[];
-  addGarageBike: (bike: UserBike) => void;
   
   // Orders
   orders: OrderRecord[];
@@ -90,13 +80,11 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeTab, setActiveTab] = useState<'services' | 'bikes' | 'rental' | 'van_fleet' | 'dashboard'>('services');
+  const [activeTab, setActiveTab] = useState<'services' | 'bikes' | 'rental' | 'van_fleet'>('services');
   const [currency, setCurrency] = useState<Currency>('EUR');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [jobs, setJobs] = useState<MaintenanceJob[]>(INITIAL_MAINTENANCE_JOBS);
-  const [selectedTrackingJob, setSelectedTrackingJob] = useState<MaintenanceJob | null>(INITIAL_MAINTENANCE_JOBS[0]);
-  const [garageBikes, setGarageBikes] = useState<UserBike[]>(INITIAL_USER_GARAGE_BIKES);
   const [orders, setOrders] = useState<OrderRecord[]>(INITIAL_ORDERS);
   const [notifications, setNotifications] = useState<EmailNotification[]>(INITIAL_NOTIFICATIONS);
   const [isEmailDrawerOpen, setIsEmailDrawerOpen] = useState(false);
@@ -170,76 +158,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addJob = (job: MaintenanceJob) => {
     setJobs(prev => [job, ...prev]);
-    setSelectedTrackingJob(job);
     showToast(`Serviss pieteikts! Kods: ${job.trackingCode}`);
-  };
-
-  const updateJobStatus = (jobId: string, status: JobStatus, note?: string) => {
-    setJobs(prev => prev.map(job => {
-      if (job.id === jobId) {
-        const statusMap: Record<JobStatus, string> = {
-          booked: 'Pieteikums saņemts un iekļauts servisa grafikā',
-          van_en_route: 'VentVelo servisa busiņš ir ceļā pēc velosipēda',
-          diagnostics: 'Diagnostika darbnīcā pabeigta, mezgli pārbaudīti',
-          in_progress: 'Meistars veic tehnisko remontu un ultraskaņas mazgāšanu',
-          quality_check: 'Gala drošības pārbaude un meistara testa brauciens',
-          ready_for_pickup_or_delivery: 'Ričuks gatavs! Gaida saņemšanu vai piegādi ar busiņu',
-          delivered: 'Velosipēds nodots klientam. VentVelo garantija ir aktīva.',
-        };
-        const statusLabel = statusMap[status];
-        const newHistory = [
-          ...job.statusHistory,
-          {
-            status,
-            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-            note: note || statusLabel,
-          }
-        ];
-        const updated = { ...job, status, statusHistory: newHistory };
-        if (selectedTrackingJob?.id === jobId) {
-          setSelectedTrackingJob(updated);
-        }
-
-        // Trigger automated email notification in natural Latvian
-        const statusEmail: EmailNotification = {
-          id: `em_${Date.now()}`,
-          recipientEmail: job.customerEmail,
-          recipientName: job.customerName,
-          subject: `Remonta statuss: ${statusLabel.slice(0, 38)}... [${job.trackingCode}]`,
-          previewText: `Jaunumi par Tavu ${job.bikeModel}: ${note || statusLabel}`,
-          category: 'status_update',
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-          referenceId: job.trackingCode,
-          read: false,
-          htmlContent: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917; line-height: 1.6;">
-              <div style="background-color: #1c1917; padding: 24px; color: #ffffff; border-radius: 8px 8px 0 0;">
-                <h2 style="margin: 0; font-size: 20px; font-weight: 700;">VentVelo darbnīcas progresa ziņojums</h2>
-                <p style="margin: 4px 0 0; font-size: 13px; color: #a8a29e;">Pasūtījuma kods: ${job.trackingCode}</p>
-              </div>
-              <div style="padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
-                <h3 style="margin-top: 0; color: #0c0a09;">Statuss atjaunots: ${status.toUpperCase()}</h3>
-                <p>Sveiki, ${job.customerName}! Jūsu velosipēds <strong>${job.bikeModel}</strong> ir sasniedzis nākamo darbu posmu:</p>
-                <div style="background: #fafaf9; border-left: 4px solid #f59e0b; padding: 14px 16px; margin: 16px 0; border: 1px solid #e7e5e4; border-left-width: 4px;">
-                  <p style="margin: 0; font-size: 14px; font-weight: 600; color: #292524;">${note || statusLabel}</p>
-                </div>
-                <p style="font-size: 13px; color: #78716c;">Atbildīgais meistars: ${job.mechanicName}</p>
-              </div>
-            </div>
-          `,
-        };
-        setNotifications(n => [statusEmail, ...n]);
-        showToast(`Izsūtīts automātisks e-pasts par statusu #${job.trackingCode}`);
-
-        return updated;
-      }
-      return job;
-    }));
-  };
-
-  const addGarageBike = (bike: UserBike) => {
-    setGarageBikes(prev => [bike, ...prev]);
-    showToast(`Velosipēds ${bike.brand} ${bike.model} reģistrēts Tavā garāžā`);
   };
 
   const addOrder = (order: OrderRecord) => {
@@ -293,11 +212,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsCartOpen,
       jobs,
       addJob,
-      updateJobStatus,
-      selectedTrackingJob,
-      setSelectedTrackingJob,
-      garageBikes,
-      addGarageBike,
       orders,
       addOrder,
       notifications,

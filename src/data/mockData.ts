@@ -523,7 +523,7 @@ export const INITIAL_NOTIFICATIONS: EmailNotification[] = [
               <li><strong>Garantija:</strong> 6 mēnešu oficiālā VentVelo darbnīcas garantija visiem darbiem</li>
             </ul>
           </div>
-          <p style="font-size: 14px;">Jūs jebkurā brīdī varat sekot līdzi meistara darba gaitai savā tiešsaistes VentVelo Garāžas profilā ar kodu <strong>VV-8492-LV</strong>.</p>
+          <p style="font-size: 14px;">Par darbu pabeigšanu un servisa busiņa ierašanās laiku informēsim Jūs pa tālruni vai e-pastā (pasūtījuma kods <strong>VV-8492-LV</strong>).</p>
           <p style="font-size: 13px; color: #78716c; margin-top: 24px;">Jautājumu gadījumā zvaniet meistaram tieši uz darbnīcu: +371 27 304 027 vai rakstiet uz ventspilsvelo@gmail.com.</p>
         </div>
       </div>
