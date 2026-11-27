@@ -53,7 +53,11 @@ export const Header: React.FC = () => {
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>
-                    <strong className="text-amber-300">Incredit nomaksa (6–36 mēn.)</strong> + vecais ritenis kā pirmā iemaksa
+                    <strong className="text-amber-300">Incredit nomaksa (6–36 mēn.)</strong> · pirmā iemaksa no €0 ar Smart-ID
+                  </span>
+                  <span className="text-amber-500">•</span>
+                  <span>
+                    <strong className="text-amber-300">Vecais ritenis kā pirmā iemaksa</strong> jaunā velosipēda iegādei
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>

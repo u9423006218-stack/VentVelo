@@ -692,7 +692,7 @@ export const BikesShowcase: React.FC = () => {
         </div>
       </div>
 
-      {/* Prominent Incredit & Trade-in Offer Banner */}
+      {/* Prominent Incredit & Assembly Offer Banner */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-emerald-950 text-white rounded-2xl p-6 border border-emerald-800/80 flex flex-col justify-between gap-4 shadow-sm">
           <div className="flex items-start justify-between gap-4">
@@ -704,7 +704,7 @@ export const BikesShowcase: React.FC = () => {
                 Pērc jaunu riteni ar Incredit no €12 mēnesī
               </h2>
               <p className="text-xs text-emerald-100/85 leading-relaxed">
-                Noformē Incredit nomaksu attālināti ar Smart-ID vai klātienē Rindas ielā 44. Pirmā iemaksa no €0 vai izmanto savu veco velosipēdu kā pirmo iemaksu!
+                Noformē Incredit nomaksu attālināti ar Smart-ID / eParaksts vai klātienē Rindas ielā 44. Atmaksas termiņš 6–36 mēneši ar pirmo iemaksu no €0.
               </p>
             </div>
             <CreditCard className="w-8 h-8 text-emerald-400 shrink-0" />
@@ -722,13 +722,13 @@ export const BikesShowcase: React.FC = () => {
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
               <div className="text-[11px] font-bold uppercase tracking-wider text-stone-900">
-                Incredit + Vecā riteņa nodošana
+                Vecā riteņa nodošana
               </div>
               <h2 className="text-xl font-bold font-heading text-stone-950">
-                Samaini veco riteni un samazini nomaksas summu
+                Samaini veco riteni un samazini jaunā cenu
               </h2>
               <p className="text-xs text-stone-900/90 leading-relaxed">
-                Atved savu esošo velosipēdu uz Rindas ielu 44 vai nodod mūsu servisa busiņam — novērtēsim to 15 minūtēs un ieskaitīsim kā pirmo iemaksu Incredit līgumā.
+                Atved savu esošo velosipēdu uz Rindas ielu 44 vai nodod mūsu servisa busiņam — novērtēsim to 15 minūtēs un ieskaitīsim jaunā velosipēda cenā.
               </p>
             </div>
             <Award className="w-8 h-8 text-stone-900 shrink-0" />
@@ -736,7 +736,7 @@ export const BikesShowcase: React.FC = () => {
           <div className="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-stone-900 pt-2 border-t border-stone-950/15">
             <span>Novērtēšana uz vietas</span>
             <span>·</span>
-            <span>Mazāks mēneša maksājums</span>
+            <span>Tūlītējs cenas samazinājums</span>
             <span>·</span>
             <span>Der arī ar +€35 montāžu</span>
           </div>
@@ -1384,7 +1384,7 @@ export const BikesShowcase: React.FC = () => {
                     <div>
                       <div className="font-bold text-emerald-200">Incredit nomaksa (6–36 mēn.)</div>
                       <div className="text-[11px] text-emerald-200/80 mt-0.5">
-                        €0 pirmā iemaksa vai vecais velosipēds pirmajai iemaksai
+                        €0 pirmā iemaksa · Smart-ID vai eParaksts
                       </div>
                     </div>
                     <div className="text-base font-bold font-mono text-white tabular-nums shrink-0">
@@ -1392,7 +1392,7 @@ export const BikesShowcase: React.FC = () => {
                     </div>
                   </div>
                   <p className="text-[11px] text-emerald-100/85 leading-relaxed">
-                    Nākamajā solī vari izvēlēties Incredit nomaksu un apvienot ar vecā velosipēda nodošanu pirmajai iemaksai. VentVelo — 18 gadi pieredzes Ventspilī!
+                    Nākamajā solī vari izvēlēties Incredit nomaksu (6–36 mēn.) ar sev vēlamo pirmo iemaksu. VentVelo — 18 gadi pieredzes Ventspilī!
                   </p>
                 </div>
               </div>

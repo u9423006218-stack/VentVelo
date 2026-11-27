@@ -113,7 +113,7 @@ export const ServiceCatalog: React.FC = () => {
               <div className="text-xs space-y-1">
                 <div className="font-bold text-white text-sm">Incredit nomaksa · 6–36 mēn.</div>
                 <p className="text-emerald-100/80 leading-relaxed">
-                  Līgums ar Smart-ID vai klātienē Rindas ielā 44. Pirmā iemaksa no €0 vai ar vecā riteņa nodošanu.
+                  Līgums attālināti ar Smart-ID / eParaksts vai klātienē Rindas ielā 44. Pirmā iemaksa no €0.
                 </p>
               </div>
             </div>
@@ -133,7 +133,7 @@ export const ServiceCatalog: React.FC = () => {
               <div className="text-xs space-y-1">
                 <div className="font-bold text-white text-sm">Vecais ritenis kā pirmā iemaksa</div>
                 <p className="text-stone-300 leading-relaxed">
-                  Samaini esošo velosipēdu pret jaunu un samazini Incredit nomaksas summu vai pirmo iemaksu.
+                  Samaini esošo velosipēdu pret jaunu un samazini jaunā velosipēda cenu.
                 </p>
               </div>
             </div>

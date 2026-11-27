@@ -88,16 +88,16 @@ export const SupportChat: React.FC = () => {
       };
     }
 
-    if (q.includes('vec') || q.includes('iemaks') || q.includes('maiņ') || q.includes('novērt')) {
+    if (q.includes('vec') || q.includes('maiņ') || q.includes('novērt')) {
       return {
-        text: 'Jā! Savu veco velosipēdu vari atdot mums kā pirmo iemaksu jaunā riteņa iegādei. Rindas ielā 44 novērtēsim tā stāvokli 15 minūšu laikā un uzreiz samazināsim jaunā Raymon, Unibike, Romet, Tabou vai Ecobike riteņa cenu vai pirmo iemaksu Incredit nomaksā.',
+        text: 'Jā! Savu veco velosipēdu vari atdot mums kā pirmo iemaksu jaunā riteņa iegādei. Rindas ielā 44 novērtēsim tā stāvokli 15 minūšu laikā un uzreiz samazināsim jaunā Raymon, Unibike, Romet, Tabou vai Ecobike riteņa cenu.',
         quickReplies: ['Skatīt velosipēdus', 'Incredit nomaksa'],
       };
     }
 
     if (q.includes('incredit') || q.includes('līzing') || q.includes('nomaks')) {
       return {
-        text: 'Visus jaunos velosipēdus (kalnu MTB, gravel, pilsētas un bērnu) vari iegādāties ar ērtu Incredit nomaksu:\n• Atmaksas termiņš no 6 līdz 36 mēnešiem, pirmā iemaksa no €0.\n• Līguma parakstīšana attālināti ar Smart-ID / eParaksts vai klātienē Rindas ielā 44.\nPlus – vari izmantot arī veco riteni kā pirmo iemaksu!',
+        text: 'Visus jaunos velosipēdus (kalnu MTB, gravel, pilsētas un bērnu) vari iegādāties ar ērtu Incredit nomaksu:\n• Atmaksas termiņš no 6 līdz 36 mēnešiem, pirmā iemaksa no €0.\n• Līguma parakstīšana attālināti ar Smart-ID / eParaksts vai klātienē Rindas ielā 44.',
         quickReplies: ['Skatīt velosipēdus', 'Vecais ritenis kā pirmā iemaksa'],
       };
     }

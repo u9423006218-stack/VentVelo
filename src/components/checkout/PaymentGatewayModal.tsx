@@ -123,8 +123,6 @@ export const PaymentGatewayModal: React.FC = () => {
   const [selectedBank, setSelectedBank] = useState<'swedbank' | 'seb' | 'citadele' | 'luminor'>('swedbank');
   const [leaseTermMonths, setLeaseTermMonths] = useState<number>(12);
   const [firstPaymentEur, setFirstPaymentEur] = useState<number>(0);
-  const [extraTradeIn, setExtraTradeIn] = useState<boolean>(false);
-  const [extraTradeInBike, setExtraTradeInBike] = useState<string>('');
 
   // Card inputs (always empty by default)
   const [cardNumber, setCardNumber] = useState('');
@@ -205,12 +203,6 @@ export const PaymentGatewayModal: React.FC = () => {
       setPostalCode('');
       setDeliveryNotes('');
       setDeliveryOptionId('store_pickup');
-      setExtraTradeIn(Boolean(checkoutPayload.type === 'single_bike' && checkoutPayload.data?.useTradeIn));
-      setExtraTradeInBike(
-        checkoutPayload.type === 'single_bike' && checkoutPayload.data?.tradeInModel
-          ? String(checkoutPayload.data.tradeInModel)
-          : ''
-      );
     }
   }, [isCheckoutModalOpen, checkoutPayload]);
 
@@ -413,7 +405,7 @@ export const PaymentGatewayModal: React.FC = () => {
         paymentMethod === 'incredit'
           ? `Incredit nomaksa (${leaseTermMonths} mēn. · ~${formatPrice(monthlyIncreditEur)}/mēn.${
               clampedFirstPayment > 0 ? ` · Pirmā iemaksa ${formatPrice(clampedFirstPayment)}` : ''
-            }${extraTradeIn ? ' + Vecā velo maiņa' : ''})`
+            })`
           : paymentMethod === 'card'
             ? digitsOnly.length >= 4
               ? `Bankas karte (••• ${digitsOnly.slice(-4)})`
@@ -500,7 +492,6 @@ export const PaymentGatewayModal: React.FC = () => {
         shippingFormatted: shippingEur === 0 ? 'Bezmaksas (€0)' : formatPrice(shippingEur),
         totalFormatted: formatPrice(grandTotalEur),
         notes: [
-          extraTradeIn && extraTradeInBike ? `Vecā riteņa maiņa: ${extraTradeInBike}` : '',
           deliveryNotes.trim() ? `Piegādes piezīme: ${deliveryNotes.trim()}` : '',
           companyRegNo.trim() ? `Uzņēmuma Reģ./PVN Nr.: ${companyRegNo.trim()}` : '',
         ]
@@ -1534,27 +1525,6 @@ export const PaymentGatewayModal: React.FC = () => {
                                 </span>
                               </div>
                             </div>
-
-                            <label className="flex items-center gap-2 pt-2 border-t border-stone-200 cursor-pointer text-stone-800">
-                              <input
-                                type="checkbox"
-                                checked={extraTradeIn}
-                                onChange={(e) => setExtraTradeIn(e.target.checked)}
-                                className="accent-emerald-700"
-                              />
-                              <span className="font-medium">
-                                Vēlos nodot savu veco velosipēdu kā pirmo iemaksu
-                              </span>
-                            </label>
-                            {extraTradeIn && (
-                              <input
-                                type="text"
-                                value={extraTradeInBike}
-                                onChange={(e) => setExtraTradeInBike(e.target.value)}
-                                placeholder="Norādi vecā velosipēda modeli, stāvokli un vēlamo summu..."
-                                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
-                              />
-                            )}
 
                             <div className="bg-white border border-stone-200 rounded-lg p-3 text-[11px] text-stone-600 space-y-1">
                               <div className="font-bold text-stone-900">Kā darbojas Incredit nomaksa:</div>
