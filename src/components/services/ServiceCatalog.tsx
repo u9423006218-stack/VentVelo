@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import heroWorkshopImg from '../../assets/images/hero_bicycle_workshop_1794340029993.jpg';
 import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340031954.jpg';
+import { BikeImage } from '../common/BikeImage';
 
 export const ServiceCatalog: React.FC = () => {
   const { 
@@ -86,7 +87,7 @@ export const ServiceCatalog: React.FC = () => {
                 >
                   <div>
                     <div className="aspect-4/3 bg-white overflow-hidden relative p-3">
-                      <img
+                      <BikeImage
                         src={bike.image}
                         alt={bike.name}
                         loading="lazy"

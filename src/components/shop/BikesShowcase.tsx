@@ -25,6 +25,7 @@ import catKidsImg from '../../assets/images/cat_kids_bike_1795451176116.jpg';
 import storeGravelImg from '../../assets/images/store_curated_gravel_bike_1794340032744.jpg';
 import heroWorkshopImg from '../../assets/images/hero_bicycle_workshop_1794340029993.jpg';
 import serviceVanImg from '../../assets/images/service_van_mobile_repair_1794340031954.jpg';
+import { BikeImage } from '../common/BikeImage';
 
 type FilterDropdownKey =
   | 'category'
@@ -592,7 +593,7 @@ export const BikesShowcase: React.FC = () => {
                 }`}
               >
                 <div className="aspect-4/3 bg-white overflow-hidden relative p-2.5 border-b border-stone-100">
-                  <img
+                  <BikeImage
                     src={cat.image}
                     alt={cat.title}
                     loading="lazy"
@@ -892,7 +893,7 @@ export const BikesShowcase: React.FC = () => {
                       className={`relative aspect-4/3 ${isRefurbished ? 'bg-stone-100' : 'bg-white p-3'} overflow-hidden cursor-pointer border-b border-stone-100`}
                       onClick={() => handleOpenBikeDetails(bike)}
                     >
-                      <img
+                      <BikeImage
                         src={bike.image}
                         alt={bike.name}
                         loading="lazy"
@@ -1106,7 +1107,7 @@ export const BikesShowcase: React.FC = () => {
                       selectedBike.condition === 'Certified Refurbished' ? 'bg-stone-100' : 'bg-white p-3'
                     } border border-stone-200 h-44 sm:h-52 md:h-auto md:aspect-4/3 relative`}
                   >
-                    <img
+                    <BikeImage
                       src={selectedBike.image}
                       alt={selectedBike.name}
                       className={`w-full h-full ${

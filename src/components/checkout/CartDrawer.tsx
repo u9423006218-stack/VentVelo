@@ -10,6 +10,7 @@ import {
   Truck, 
   Lock 
 } from 'lucide-react';
+import { BikeImage } from '../common/BikeImage';
 
 export const CartDrawer: React.FC = () => {
   const { 
@@ -67,11 +68,10 @@ export const CartDrawer: React.FC = () => {
               {cart.map((item) => (
                 <div key={item.id} className="py-3 flex items-start gap-3">
                   {item.image && (
-                    <img
+                    <BikeImage
                       src={item.image}
                       alt={item.name}
-                      referrerPolicy="no-referrer"
-                      className="w-14 h-14 rounded-lg object-cover bg-stone-100 shrink-0 border border-stone-200"
+                      className="w-14 h-14 rounded-lg object-contain bg-white p-0.5 shrink-0 border border-stone-200"
                     />
                   )}
                   
