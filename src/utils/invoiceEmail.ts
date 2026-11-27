@@ -129,13 +129,13 @@ function buildPdfDocDefinition(payload: InvoiceDispatchPayload): TDocumentDefini
                   fontSize: 22,
                 },
                 {
-                  text: 'SIA VentVelo · Velosipēdu darbnīca un salons',
+                  text: 'SIA "RGS6" (VentVelo) · Reģ. Nr. 40103846622 · PVN LV40103846622',
                   fontSize: 9.5,
                   color: '#d6d3d1',
                   margin: [0, 3, 0, 0],
                 },
                 {
-                  text: 'Rindas iela 44, Ventspils, LV-3602 · Tālr. +371 27 583 888 · ventspilsvelo@gmail.com',
+                  text: 'Veikals: Rindas iela 44, Ventspils · Jur. adr.: "Olīva", Usmas pag., LV-3619 · +371 27 583 888',
                   fontSize: 8.5,
                   color: '#a8a29e',
                   margin: [0, 2, 0, 0],
@@ -336,7 +336,7 @@ export function buildInvoiceHtml(payload: InvoiceDispatchPayload): string {
         <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
           <div>
             <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.4px;"><span style="color: #f59e0b;">Vent</span>Velo</div>
-            <div style="font-size: 12px; color: #a8a29e; margin-top: 2px;">SIA VentVelo · Rindas iela 44, Ventspils · +371 27 583 888</div>
+            <div style="font-size: 12px; color: #a8a29e; margin-top: 2px;">SIA "RGS6" (VentVelo) · Reģ. Nr. 40103846622 · PVN LV40103846622 · Rindas iela 44, Ventspils · +371 27 583 888</div>
           </div>
           <div style="text-align: right;">
             <div style="font-size: 12px; text-transform: uppercase; color: #fbbf24; font-weight: 700;">${payload.kind === 'service' ? 'Servisa tāme / Rēķins' : 'Elektroniskais rēķins'}</div>
@@ -437,7 +437,7 @@ function buildFormPayloadFields(payload: InvoiceDispatchPayload): {
     'Apmaksas veids': payload.paymentMethodLabel,
     'Kopā apmaksai (ar PVN)': payload.totalFormatted,
     ...(payload.notes ? { Piezīmes: payload.notes } : {}),
-    Pārdevējs: `SIA VentVelo · Rindas iela 44, Ventspils · +371 27 583 888 · ${STORE_OFFICIAL_EMAIL}`,
+    Pārdevējs: `SIA "RGS6" (VentVelo) · Reģ. Nr. 40103846622 · PVN LV40103846622 · Rindas iela 44, Ventspils · +371 27 583 888 · ${STORE_OFFICIAL_EMAIL}`,
   };
 
   if (shouldCcCustomer) {

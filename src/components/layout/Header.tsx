@@ -80,7 +80,7 @@ export const Header: React.FC = () => {
               className="hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Droši norēķini un GDPR</span>
+              <span>Noteikumi un privātums</span>
             </button>
           </div>
         </div>

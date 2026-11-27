@@ -47,7 +47,7 @@ const DELIVERY_OPTIONS: DeliveryOptionConfig[] = [
     title: 'Saņemšana VentVelo veikalā (Rindas iela 44, Ventspils)',
     subtitle: 'Pārbaudīts un gatavs · Darba dienās 10:00–18:00, Sestd. 10:00–15:00',
     baseFeeEur: 0,
-    freeThresholdEur: 0,
+    freeThresholdEur: null,
     methodType: 'store_pickup',
   },
   {
@@ -55,7 +55,7 @@ const DELIVERY_OPTIONS: DeliveryOptionConfig[] = [
     title: 'VentVelo servisa busa piegāde Ventspilī un novadā',
     subtitle: 'Piegāde līdz mājas durvīm Ventspilī un Pārventā · 1 darba dienas laikā',
     baseFeeEur: 8,
-    freeThresholdEur: 50,
+    freeThresholdEur: null,
     methodType: 'van_delivery',
   },
   {
@@ -63,7 +63,7 @@ const DELIVERY_OPTIONS: DeliveryOptionConfig[] = [
     title: 'VentVelo servisa busa piegāde uz Usmu',
     subtitle: 'Regulārie reisi Pirmd., Trešd., Piektd. · Arī viesu namiem un kempingiem',
     baseFeeEur: 18,
-    freeThresholdEur: 120,
+    freeThresholdEur: null,
     methodType: 'van_delivery',
   },
   {
@@ -71,7 +71,7 @@ const DELIVERY_OPTIONS: DeliveryOptionConfig[] = [
     title: 'VentVelo servisa busa piegāde Talsu rajonā',
     subtitle: 'Otrd. un Ceturtd. maršruts · Talsi, Stende, Pastende, Sabile un Talsu novads',
     baseFeeEur: 22,
-    freeThresholdEur: 150,
+    freeThresholdEur: null,
     methodType: 'van_delivery',
   },
 ];
@@ -343,6 +343,16 @@ export const PaymentGatewayModal: React.FC = () => {
       if (!streetAddress.trim() || !city.trim()) {
         setStepError('Lūdzu, norādi piegādes ielu/māju un pilsētu vai pagastu, vai izvēlies saņemšanu veikalā.');
         return;
+      }
+      if (deliveryOptionId === 'store_pickup') {
+        const c = city.trim().toLowerCase();
+        if (c.includes('usm')) {
+          setDeliveryOptionId('van_usma');
+        } else if (c.includes('tals') || c.includes('stend') || c.includes('pastend') || c.includes('sabil')) {
+          setDeliveryOptionId('van_talsi');
+        } else {
+          setDeliveryOptionId('van_ventspils');
+        }
       }
     } else {
       if (deliveryOptionId !== 'service_included') {
@@ -897,7 +907,7 @@ export const PaymentGatewayModal: React.FC = () => {
                       onClick={() => setIsSecurityModalOpen(true)}
                       className="text-stone-900 font-semibold underline cursor-pointer"
                     >
-                      GDPR noteikumus
+                      Noteikumus un privātuma politiku
                     </button>
                     .
                   </p>
@@ -1087,13 +1097,13 @@ export const PaymentGatewayModal: React.FC = () => {
                             className="mt-0.5 accent-stone-900"
                           />
                           <span>
-                            Es piekrītu veikala lietošanas noteikumiem un{' '}
+                            Es piekrītu{' '}
                             <button
                               type="button"
                               onClick={() => setIsSecurityModalOpen(true)}
                               className="underline hover:text-amber-700 cursor-pointer"
                             >
-                              privātuma politikai
+                              veikala lietošanas noteikumiem un privātuma politikai
                             </button>{' '}
                             *
                           </span>

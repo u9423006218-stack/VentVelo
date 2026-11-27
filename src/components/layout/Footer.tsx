@@ -147,7 +147,7 @@ export const Footer: React.FC = () => {
                 className="hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1.5 text-stone-300"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                <span>Privātuma politika un GDPR</span>
+                <span>Noteikumi un privātuma politika</span>
               </button>
             </li>
           </ul>
@@ -175,15 +175,15 @@ export const Footer: React.FC = () => {
       {/* Bottom Bar */}
       <div className="border-t border-stone-800/80 py-4 text-xs text-stone-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© {new Date().getFullYear()} SIA VentVelo. Visas tiesības aizsargātas. Ventspils, Latvija.</p>
-          <div className="flex items-center gap-4">
-            <span className="text-stone-400">Reģ. Nr. 40003000000 · PVN maksātājs</span>
+          <p>© {new Date().getFullYear()} SIA &ldquo;RGS6&rdquo; (VentVelo). Visas tiesības aizsargātas. &ldquo;Olīva&rdquo;, Usmas pag., Ventspils nov.</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <span className="text-stone-400">Reģ. Nr. 40103846622 · PVN Nr. LV40103846622</span>
             <span>·</span>
             <button 
               onClick={() => setIsSecurityModalOpen(true)} 
               className="hover:text-stone-300 transition-colors cursor-pointer"
             >
-              Datu aizsardzība un noteikumi
+              Noteikumi, piegāde, atgriešana un GDPR
             </button>
           </div>
         </div>
