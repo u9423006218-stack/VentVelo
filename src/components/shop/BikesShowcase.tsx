@@ -132,9 +132,6 @@ export const BikesShowcase: React.FC = () => {
   const [selectedBike, setSelectedBike] = useState<BikeProduct | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [assemblyOption, setAssemblyOption] = useState<'assembled' | 'box'>('assembled');
-  const [useTradeIn, setUseTradeIn] = useState<boolean>(false);
-  const [tradeInModel, setTradeInModel] = useState<string>('');
-  const [tradeInEstimateEur, setTradeInEstimateEur] = useState<number>(100);
   const modalBodyRef = useRef<HTMLDivElement>(null);
   const [showScrollHint, setShowScrollHint] = useState<boolean>(false);
 
@@ -156,7 +153,7 @@ export const BikesShowcase: React.FC = () => {
     } else {
       setShowScrollHint(false);
     }
-  }, [selectedBike, useTradeIn]);
+  }, [selectedBike]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -385,20 +382,11 @@ export const BikesShowcase: React.FC = () => {
     setSelectedBike(bike);
     setSelectedSize(bike.sizesAvailable[0] || 'One Size');
     setAssemblyOption('assembled');
-    setUseTradeIn(false);
-    setTradeInModel('');
-    setTradeInEstimateEur(100);
   };
 
   const getAssemblyFee = () => (assemblyOption === 'assembled' ? 35 : 0);
 
-  const getFinalPrice = (bike: BikeProduct) => {
-    const baseWithAssembly = bike.priceEur + getAssemblyFee();
-    if (useTradeIn) {
-      return Math.max(50, baseWithAssembly - tradeInEstimateEur);
-    }
-    return baseWithAssembly;
-  };
+  const getFinalPrice = (bike: BikeProduct) => bike.priceEur + getAssemblyFee();
 
   const handleDirectBuyFromModal = (bike: BikeProduct) => {
     const finalTotal = getFinalPrice(bike);
@@ -406,9 +394,6 @@ export const BikesShowcase: React.FC = () => {
       assemblyOption === 'assembled'
         ? 'Meistara salikts ar garantiju (+€35)'
         : 'Oriģinālajā kastē (pašu montāžai, bez garantijas)';
-    const tradeInLabel = useTradeIn
-      ? ` · Vecais ritenis pirmajai iemaksai (-€${tradeInEstimateEur}${tradeInModel ? `: ${tradeInModel}` : ''})`
-      : '';
 
     openCheckout({
       type: 'single_bike',
@@ -417,12 +402,9 @@ export const BikesShowcase: React.FC = () => {
         selectedSize: selectedSize || bike.sizesAvailable[0],
         assemblyOption,
         assemblyFeeEur: getAssemblyFee(),
-        useTradeIn,
-        tradeInModel,
-        tradeInEstimateEur: useTradeIn ? tradeInEstimateEur : 0,
       },
       totalEur: finalTotal,
-      title: `${bike.name} (${selectedSize || bike.sizesAvailable[0]}) · ${assemblyLabel}${tradeInLabel}`,
+      title: `${bike.name} (${selectedSize || bike.sizesAvailable[0]}) · ${assemblyLabel}`,
     });
     setSelectedBike(null);
   };
@@ -433,16 +415,15 @@ export const BikesShowcase: React.FC = () => {
       assemblyOption === 'assembled'
         ? 'Meistara salikts (+€35) ar garantiju'
         : 'Kastē (bez garantijas)';
-    const tradeInNote = useTradeIn ? ` · Pirmā iemaksa vecais velo (-€${tradeInEstimateEur})` : '';
 
     addToCart({
       type: 'bike',
-      productId: `${bike.id}_${selectedSize}_${assemblyOption}_${useTradeIn ? tradeInEstimateEur : 0}`,
+      productId: `${bike.id}_${selectedSize}_${assemblyOption}`,
       name: `${bike.name} – ${selectedSize || bike.sizesAvailable[0]}`,
       priceEur: finalTotal,
       quantity: 1,
       image: bike.image,
-      details: `${assemblyLabel}${tradeInNote}`,
+      details: assemblyLabel,
     });
     setSelectedBike(null);
   };
@@ -643,7 +624,7 @@ export const BikesShowcase: React.FC = () => {
               <span>18 gadu pieredze kopš 2008. gada</span>
             </div>
             <p className="text-stone-400 leading-relaxed">
-              Nodod savu veco riteni kā pirmo iemaksu par jauno vai sadali maksājumu ar Incredit nomaksu. Piegāde ar servisa busiņu Ventspilī, Usmā un Talsos.
+              Nodod savu veco riteni kā pirmo iemaksu klātienē veikalā Rindas ielā 44 vai sadali maksājumu ar Incredit nomaksu. Piegāde ar servisa busiņu Ventspilī, Usmā un Talsos.
             </p>
           </div>
         </div>
@@ -663,10 +644,10 @@ export const BikesShowcase: React.FC = () => {
           <div className="space-y-1">
             <div className="font-bold text-white flex items-center gap-1.5">
               <RefreshCw className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Vecais ritenis pirmajai iemaksai</span>
+              <span>Vecais ritenis pirmajai iemaksai (tikai klātienē)</span>
             </div>
             <p className="text-stone-400 leading-relaxed">
-              Atved savu esošo velosipēdu uz Rindas ielu 44 vai nodod busiņam — novērtēsim un ieskaitīsim kā pirmo iemaksu.
+              Atved savu esošo velosipēdu uz Rindas ielu 44 — novērtēsim tikai klātienē un ieskaitīsim kā pirmo iemaksu.
             </p>
           </div>
 
@@ -722,19 +703,19 @@ export const BikesShowcase: React.FC = () => {
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
               <div className="text-[11px] font-bold uppercase tracking-wider text-stone-900">
-                Vecā riteņa nodošana
+                Vecā riteņa nodošana · Tikai klātienē
               </div>
               <h2 className="text-xl font-bold font-heading text-stone-950">
                 Samaini veco riteni un samazini jaunā cenu
               </h2>
               <p className="text-xs text-stone-900/90 leading-relaxed">
-                Atved savu esošo velosipēdu uz Rindas ielu 44 vai nodod mūsu servisa busiņam — novērtēsim to 15 minūtēs un ieskaitīsim jaunā velosipēda cenā.
+                Atved savu esošo velosipēdu uz mūsu veikalu Rindas ielā 44, Ventspilī — tikai klātienē 15 minūtēs novērtēsim to un ieskaitīsim jaunā velosipēda cenā.
               </p>
             </div>
             <Award className="w-8 h-8 text-stone-900 shrink-0" />
           </div>
           <div className="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-stone-900 pt-2 border-t border-stone-950/15">
-            <span>Novērtēšana uz vietas</span>
+            <span>Tikai klātienē Rindas ielā 44</span>
             <span>·</span>
             <span>Tūlītējs cenas samazinājums</span>
             <span>·</span>
@@ -1261,57 +1242,20 @@ export const BikesShowcase: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Trade-In Option */}
-                  <div className="bg-stone-50 border border-stone-200 rounded-xl p-3.5 space-y-3 text-xs">
-                    <label className="flex items-center justify-between gap-2 cursor-pointer">
-                      <span className="font-bold text-stone-900 flex items-center gap-1.5">
-                        <RefreshCw className="w-3.5 h-3.5 text-amber-600" />
+                  {/* Trade-In Option — In Person Only */}
+                  <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5 space-y-1.5 text-xs">
+                    <div className="font-bold text-stone-900 flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5">
+                        <RefreshCw className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         Nodod savu veco riteni kā pirmo iemaksu
                       </span>
-                      <input
-                        type="checkbox"
-                        checked={useTradeIn}
-                        onChange={(e) => setUseTradeIn(e.target.checked)}
-                        className="w-4 h-4 accent-amber-600 cursor-pointer"
-                      />
-                    </label>
-
-                    {useTradeIn && (
-                      <div className="space-y-2.5 pt-2 border-t border-stone-200">
-                        <div>
-                          <label className="block text-[11px] text-stone-600 mb-1">
-                            Vecā velosipēda marka un aptuvenais stāvoklis:
-                          </label>
-                          <input
-                            type="text"
-                            value={tradeInModel}
-                            onChange={(e) => setTradeInModel(e.target.value)}
-                            placeholder="Piem., Trek Marlin vai bērnu 16'' ritenis, labs stāvoklis"
-                            className="w-full px-3 py-1.5 bg-white border border-stone-300 rounded-lg text-xs"
-                          />
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[11px] text-stone-600">Orientējošā pirmā iemaksa:</span>
-                          {[50, 100, 150, 250].map((val) => (
-                            <button
-                              key={val}
-                              type="button"
-                              onClick={() => setTradeInEstimateEur(val)}
-                              className={`px-2.5 py-1 rounded text-[11px] font-semibold font-mono cursor-pointer border ${
-                                tradeInEstimateEur === val
-                                  ? 'bg-stone-900 text-white border-stone-900'
-                                  : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-100'
-                              }`}
-                            >
-                              -€{val}
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-[11px] text-stone-500">
-                          Precīzu vecā velosipēda vērtību apstiprinās meistars Rindas ielā 44 vai servisa busiņa šoferis apskates brīdī.
-                        </p>
-                      </div>
-                    )}
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-stone-900 text-amber-400 px-2 py-0.5 rounded shrink-0">
+                        Tikai klātienē
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-600 leading-relaxed">
+                      Vecā velosipēda novērtēšana un ieskaitīšana kā pirmā iemaksa pieejama <strong>tikai klātienē</strong> veikalā Rindas ielā 44, Ventspilī — pēc meistara apskates uz vietas.
+                    </p>
                   </div>
 
                   {/* Mobile Specs summary mini grid */}

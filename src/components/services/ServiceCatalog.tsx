@@ -41,7 +41,7 @@ export const ServiceCatalog: React.FC = () => {
                 Velosipēdi pārdošanā
               </h1>
               <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-                Kalnu (MTB), Gravel, šosejas, pilsētas, hibrīda, BMX, Fatbike, saliekamie, bērnu un E-velosipēdi. Pasūti oriģinālajā kastē pašmontāžai (€0, bez garantijas) vai par <strong className="text-amber-400">+€35 saņem pilnībā meistara saliktu ar garantiju</strong>. Nodod savu veco riteni kā pirmo iemaksu!
+                Kalnu (MTB), Gravel, šosejas, pilsētas, hibrīda, BMX, Fatbike, saliekamie, bērnu un E-velosipēdi. Pasūti oriģinālajā kastē pašmontāžai (€0, bez garantijas) vai par <strong className="text-amber-400">+€35 saņem pilnībā meistara saliktu ar garantiju</strong>. Nodod savu veco riteni kā pirmo iemaksu tikai klātienē!
               </p>
             </div>
 
@@ -131,9 +131,9 @@ export const ServiceCatalog: React.FC = () => {
             <div className="bg-stone-900 border border-stone-700 rounded-xl p-4 flex items-start gap-3">
               <RefreshCw className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs space-y-1">
-                <div className="font-bold text-white text-sm">Vecais ritenis kā pirmā iemaksa</div>
+                <div className="font-bold text-white text-sm">Vecais ritenis kā pirmā iemaksa (tikai klātienē)</div>
                 <p className="text-stone-300 leading-relaxed">
-                  Samaini esošo velosipēdu pret jaunu un samazini jaunā velosipēda cenu.
+                  Tikai klātienē Rindas ielā 44 — samaini esošo velosipēdu pret jaunu un samazini jaunā velosipēda cenu.
                 </p>
               </div>
             </div>

@@ -57,7 +57,7 @@ export const Header: React.FC = () => {
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>
-                    <strong className="text-amber-300">Vecais ritenis kā pirmā iemaksa</strong> jaunā velosipēda iegādei
+                    <strong className="text-amber-300">Vecais ritenis kā pirmā iemaksa</strong> tikai klātienē Rindas ielā 44
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>
