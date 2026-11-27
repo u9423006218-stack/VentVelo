@@ -213,6 +213,8 @@ export const ServiceBookingModal: React.FC = () => {
               ? `Pieteikums #${randomCode} un rēķins nosūtīts uz ${customerEmail.trim()} un ${STORE_OFFICIAL_EMAIL}!`
               : `Pieteikums #${randomCode} nosūtīts uz ${STORE_OFFICIAL_EMAIL}!`
           );
+        } else if (res.needsActivation) {
+          showToast(`Pieteikums #${randomCode} izveidots! Apstiprini FormSubmit saiti e-pastā ${STORE_OFFICIAL_EMAIL} (pārbaudi arī Spam).`);
         } else {
           showToast(`Pieteikums #${randomCode} saglabāts! Meistars sazināsies pa tālruni.`);
         }

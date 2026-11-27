@@ -27,10 +27,12 @@ export interface InvoiceDispatchPayload {
 export interface InvoiceDispatchResult {
   ok: boolean;
   customerIncluded: boolean;
+  needsActivation?: boolean;
   errorMessage?: string;
 }
 
 export const STORE_OFFICIAL_EMAIL = 'ventspilsvelo@gmail.com';
+const FORMSUBMIT_STANDARD_URL = `https://formsubmit.co/${STORE_OFFICIAL_EMAIL}`;
 const FORMSUBMIT_AJAX_URL = `https://formsubmit.co/ajax/${STORE_OFFICIAL_EMAIL}`;
 
 function escapeHtml(value: string): string {
@@ -165,7 +167,10 @@ export function downloadInvoiceHtml(payload: InvoiceDispatchPayload): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export async function sendInvoiceEmails(payload: InvoiceDispatchPayload): Promise<InvoiceDispatchResult> {
+function buildFormPayloadFields(payload: InvoiceDispatchPayload): {
+  fields: Record<string, string>;
+  shouldCcCustomer: boolean;
+} {
   const trimmedCustomerEmail = payload.customerEmail.trim();
   const hasValidCustomerEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedCustomerEmail);
   const shouldCcCustomer =
@@ -178,7 +183,7 @@ export async function sendInvoiceEmails(payload: InvoiceDispatchPayload): Promis
     )
     .join('\n');
 
-  const body: Record<string, string> = {
+  const fields: Record<string, string> = {
     _subject: `VentVelo Rēķins #${payload.orderNumber} — ${payload.customerName} (${payload.totalFormatted})`,
     _template: 'table',
     _captcha: 'false',
@@ -199,35 +204,66 @@ export async function sendInvoiceEmails(payload: InvoiceDispatchPayload): Promis
   };
 
   if (shouldCcCustomer) {
-    body._cc = trimmedCustomerEmail;
-    body._replyto = trimmedCustomerEmail;
+    fields._cc = trimmedCustomerEmail;
+    fields._replyto = trimmedCustomerEmail;
   }
+
+  return { fields, shouldCcCustomer };
+}
+
+export function submitViaStandardForm(payload: InvoiceDispatchPayload): void {
+  const { fields } = buildFormPayloadFields(payload);
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = FORMSUBMIT_STANDARD_URL;
+  form.target = '_blank';
+  form.style.display = 'none';
+
+  Object.entries(fields).forEach(([key, value]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+}
+
+export async function sendInvoiceEmails(payload: InvoiceDispatchPayload): Promise<InvoiceDispatchResult> {
+  const { fields, shouldCcCustomer } = buildFormPayloadFields(payload);
 
   try {
     const response = await fetch(FORMSUBMIT_AJAX_URL, {
       method: 'POST',
+      mode: 'cors',
+      referrerPolicy: 'origin-when-cross-origin',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(fields),
     });
 
-    if (!response.ok) {
+    const result = await response.json().catch(() => null);
+    const success = result?.success === 'true' || result?.success === true;
+    const msg = typeof result?.message === 'string' ? result.message : '';
+    const needsActivation = /activat/i.test(msg);
+
+    if (!response.ok || !success) {
       return {
         ok: false,
         customerIncluded: shouldCcCustomer,
-        errorMessage: `HTTP ${response.status}`,
+        needsActivation,
+        errorMessage: msg || `HTTP ${response.status}`,
       };
     }
 
-    const result = await response.json().catch(() => null);
-    const success = result?.success === 'true' || result?.success === true || response.ok;
-
     return {
-      ok: Boolean(success),
+      ok: true,
       customerIncluded: shouldCcCustomer,
-      errorMessage: success ? undefined : result?.message,
     };
   } catch (err) {
     return {

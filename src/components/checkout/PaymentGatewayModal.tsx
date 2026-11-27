@@ -8,6 +8,7 @@ import {
   InvoiceDispatchPayload,
   sendInvoiceEmails,
   STORE_OFFICIAL_EMAIL,
+  submitViaStandardForm,
 } from '../../utils/invoiceEmail';
 import {
   ArrowRight,
@@ -143,7 +144,9 @@ export const PaymentGatewayModal: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<OrderRecord | null>(null);
   const [lastInvoicePayload, setLastInvoicePayload] = useState<InvoiceDispatchPayload | null>(null);
-  const [emailDispatchState, setEmailDispatchState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [emailDispatchState, setEmailDispatchState] = useState<
+    'idle' | 'sending' | 'sent' | 'needs_activation' | 'error'
+  >('idle');
 
   // Reset form cleanly whenever modal opens with a payload
   useEffect(() => {
@@ -524,13 +527,18 @@ export const PaymentGatewayModal: React.FC = () => {
       addNotification(email);
 
       void sendInvoiceEmails(invoicePayload).then((res) => {
-        setEmailDispatchState(res.ok ? 'sent' : 'error');
         if (res.ok) {
+          setEmailDispatchState('sent');
           showToast(
             res.customerIncluded
               ? `Rēķins #${orderNum} nosūtīts uz ${customerEmail.trim()} un ${STORE_OFFICIAL_EMAIL}!`
               : `Rēķins #${orderNum} nosūtīts uz ${STORE_OFFICIAL_EMAIL}!`
           );
+        } else if (res.needsActivation) {
+          setEmailDispatchState('needs_activation');
+          showToast(`Nepieciešama vienreizēja e-pasta aktivizācija adresē ${STORE_OFFICIAL_EMAIL}!`);
+        } else {
+          setEmailDispatchState('error');
         }
       });
 
@@ -635,13 +643,13 @@ export const PaymentGatewayModal: React.FC = () => {
                 className={`rounded-xl p-3.5 text-left text-xs border flex items-start gap-2.5 ${
                   emailDispatchState === 'sent'
                     ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
-                    : emailDispatchState === 'error'
+                    : emailDispatchState === 'needs_activation' || emailDispatchState === 'error'
                       ? 'bg-amber-50 border-amber-200 text-stone-800'
                       : 'bg-stone-50 border-stone-200 text-stone-700'
                 }`}
               >
                 <Mail className="w-4 h-4 shrink-0 mt-0.5 text-emerald-700" />
-                <div className="space-y-0.5 leading-relaxed">
+                <div className="space-y-2 leading-relaxed">
                   {emailDispatchState === 'sending' && (
                     <p className="font-medium">
                       Sūta elektronisko rēķinu uz <strong>{confirmedOrder.customer.email}</strong> un{' '}
@@ -655,11 +663,42 @@ export const PaymentGatewayModal: React.FC = () => {
                       <strong>{STORE_OFFICIAL_EMAIL}</strong>.
                     </p>
                   )}
+                  {emailDispatchState === 'needs_activation' && (
+                    <>
+                      <p>
+                        <strong className="font-semibold">Nepieciešama vienreizēja e-pasta aktivizācija!</strong> Uz{' '}
+                        <strong>{STORE_OFFICIAL_EMAIL}</strong> ir izsūtīta FormSubmit apstiprinājuma vēstule ar pogu{' '}
+                        <em>Activate Form</em> (pārbaudi arī Gmail <strong>Spam / Mēstules</strong> un{' '}
+                        <strong>Atjauninājumi / Reklāmas</strong>). Kad tā tiks apstiprināta, visi rēķini tiks sūtīti
+                        pilnībā automātiski.
+                      </p>
+                      {lastInvoicePayload && (
+                        <button
+                          type="button"
+                          onClick={() => submitViaStandardForm(lastInvoicePayload)}
+                          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold rounded-lg text-[11px] cursor-pointer"
+                        >
+                          Pieprasīt aktivizāciju / nosūtīt caur FormSubmit lapu
+                        </button>
+                      )}
+                    </>
+                  )}
                   {emailDispatchState === 'error' && (
-                    <p>
-                      Pasūtījums apstiprināts! Tiešsaistes rēķina automātiskā piegāde aizkavējās — vari lejupielādēt
-                      rēķinu zemāk vai sazināties WhatsApp ar meistaru.
-                    </p>
+                    <>
+                      <p>
+                        Pasūtījums apstiprināts! Pārlūka satura bloķētājs vai lokālais priekšskatījums neļāva nosūtīt
+                        rēķinu fonā — vari to nosūtīt caur FormSubmit lapu vai lejupielādēt zemāk.
+                      </p>
+                      {lastInvoicePayload && (
+                        <button
+                          type="button"
+                          onClick={() => submitViaStandardForm(lastInvoicePayload)}
+                          className="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-white font-semibold rounded-lg text-[11px] cursor-pointer"
+                        >
+                          Nosūtīt rēķinu caur FormSubmit lapu
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
