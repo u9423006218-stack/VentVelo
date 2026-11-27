@@ -1,115 +1,408 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { OrderRecord, EmailNotification } from '../../types';
-import { 
-  X, 
-  Lock, 
-  ShieldCheck, 
-  CreditCard, 
-  Check, 
-  Truck, 
-  CheckCircle2, 
+import { CartItem, EmailNotification, OrderRecord } from '../../types';
+import { BikeImage } from '../common/BikeImage';
+import {
   ArrowRight,
-  Building 
+  Banknote,
+  Building,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  CreditCard,
+  Lock,
+  MapPin,
+  Pencil,
+  ShieldCheck,
+  Tag,
+  Truck,
+  X,
 } from 'lucide-react';
 
+type CheckoutStep = 1 | 2 | 3 | 4;
+type PaymentMethodType = 'incredit' | 'card' | 'banklink' | 'cash_onsite';
+type DeliveryOptionId = 'store_pickup' | 'van_ventspils' | 'van_usma' | 'van_talsi' | 'service_included';
+
+interface DeliveryOptionConfig {
+  id: DeliveryOptionId;
+  title: string;
+  subtitle: string;
+  baseFeeEur: number;
+  freeThresholdEur: number | null;
+  methodType: 'store_pickup' | 'van_delivery';
+}
+
+const DELIVERY_OPTIONS: DeliveryOptionConfig[] = [
+  {
+    id: 'store_pickup',
+    title: 'Saņemšana VentVelo veikalā (Rindas iela 44, Ventspils)',
+    subtitle: 'Pārbaudīts un gatavs · Darba dienās 10:00–18:00, Sestd. 10:00–15:00',
+    baseFeeEur: 0,
+    freeThresholdEur: 0,
+    methodType: 'store_pickup',
+  },
+  {
+    id: 'van_ventspils',
+    title: 'VentVelo servisa busa piegāde Ventspilī un novadā',
+    subtitle: 'Piegāde līdz mājas durvīm Ventspilī un Pārventā · 1 darba dienas laikā',
+    baseFeeEur: 8,
+    freeThresholdEur: 50,
+    methodType: 'van_delivery',
+  },
+  {
+    id: 'van_usma',
+    title: 'VentVelo servisa busa piegāde uz Usmu',
+    subtitle: 'Regulārie reisi Pirmd., Trešd., Piektd. · Arī viesu namiem un kempingiem',
+    baseFeeEur: 18,
+    freeThresholdEur: 120,
+    methodType: 'van_delivery',
+  },
+  {
+    id: 'van_talsi',
+    title: 'VentVelo servisa busa piegāde Talsu rajonā',
+    subtitle: 'Otrd. un Ceturtd. maršruts · Talsi, Stende, Pastende, Sabile un Talsu novads',
+    baseFeeEur: 22,
+    freeThresholdEur: 150,
+    methodType: 'van_delivery',
+  },
+];
+
 export const PaymentGatewayModal: React.FC = () => {
-  const { 
-    isCheckoutModalOpen, 
-    setIsCheckoutModalOpen, 
-    checkoutPayload, 
-    currency, 
-    formatPrice, 
-    addOrder, 
-    addNotification, 
-    clearCart, 
-    cart, 
-    setActiveTab, 
+  const {
+    isCheckoutModalOpen,
+    setIsCheckoutModalOpen,
+    checkoutPayload,
+    currency,
+    formatPrice,
+    addOrder,
+    addNotification,
+    clearCart,
+    cart,
+    setActiveTab,
     setIsSecurityModalOpen,
-    showToast 
   } = useApp();
 
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'banklink' | 'inbank' | 'esto' | 'van_pos'>('card');
+  // Stepper & Accordion State
+  const [activeStep, setActiveStep] = useState<CheckoutStep>(1);
+  const [unlockedStep, setUnlockedStep] = useState<CheckoutStep>(1);
+  const [stepError, setStepError] = useState<string | null>(null);
+  const [showOrderItems, setShowOrderItems] = useState<boolean>(true);
+
+  // Step 1: Personīgā informācija
+  const [customerType, setCustomerType] = useState<'private' | 'company'>('private');
+  const [companyName, setCompanyName] = useState('');
+  const [companyRegNo, setCompanyRegNo] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  // Step 2: Piegādes adrese
+  const [addressMode, setAddressMode] = useState<'address' | 'store'>('address');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [deliveryNotes, setDeliveryNotes] = useState('');
+
+  // Step 3: Piegādes veids
+  const [deliveryOptionId, setDeliveryOptionId] = useState<DeliveryOptionId>('store_pickup');
+
+  // Step 4: Maksājums
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('incredit');
   const [selectedBank, setSelectedBank] = useState<'swedbank' | 'seb' | 'citadele' | 'luminor'>('swedbank');
   const [leaseTermMonths, setLeaseTermMonths] = useState<number>(12);
-  const [estoPlan, setEstoPlan] = useState<'esto3' | 'leasing'>('esto3');
+  const [firstPaymentEur, setFirstPaymentEur] = useState<number>(0);
   const [extraTradeIn, setExtraTradeIn] = useState<boolean>(false);
   const [extraTradeInBike, setExtraTradeInBike] = useState<string>('');
-  
-  // Card inputs
+  const [cashSubMethod, setCashSubMethod] = useState<'store_cash_card' | 'courier_cash_pos'>('store_cash_card');
+
+  // Card inputs (always empty by default)
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvc, setCardCvc] = useState('');
   const [cardName, setCardName] = useState('');
 
-  // Customer inputs
-  const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [shippingAddress, setShippingAddress] = useState('');
+  // Promo code
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<'VENTVELO5' | null>(null);
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
 
+  // Processing & Confirmation
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [confirmedOrderNumber, setConfirmedOrderNumber] = useState('');
+  const [confirmedOrder, setConfirmedOrder] = useState<OrderRecord | null>(null);
+
+  // Reset form cleanly whenever modal opens with a payload
+  useEffect(() => {
+    if (!isCheckoutModalOpen || !checkoutPayload) return;
+
+    setActiveStep(1);
+    setUnlockedStep(1);
+    setStepError(null);
+    setIsProcessing(false);
+    setIsSuccess(false);
+    setConfirmedOrder(null);
+    setPromoInput('');
+    setAppliedPromo(null);
+    setPromoMessage(null);
+    setFirstPaymentEur(0);
+
+    // Clear sensitive/card fields on every open
+    setCardNumber('');
+    setCardExpiry('');
+    setCardCvc('');
+    setCardName('');
+
+    if (checkoutPayload.type === 'service' && checkoutPayload.data) {
+      const job = checkoutPayload.data;
+      const parts = String(job.customerName || '').trim().split(/\s+/);
+      setFirstName(parts[0] || '');
+      setLastName(parts.slice(1).join(' ') || '');
+      setCustomerEmail(job.customerEmail || '');
+      setCustomerPhone(job.customerPhone || '');
+      setDeliveryOptionId('service_included');
+      if (job.deliveryType === 'van_pickup' && job.pickupLocation) {
+        setAddressMode('address');
+        setStreetAddress(job.pickupLocation.address || '');
+        setCity(job.pickupLocation.city || job.pickupLocation.region || '');
+        setPostalCode(job.pickupLocation.postalCode || '');
+      } else {
+        setAddressMode('store');
+      }
+    } else {
+      setCustomerType('private');
+      setCompanyName('');
+      setCompanyRegNo('');
+      setFirstName('');
+      setLastName('');
+      setCustomerEmail('');
+      setCustomerPhone('');
+      setTermsAccepted(false);
+      setNewsletterOptIn(false);
+      setAddressMode('address');
+      setStreetAddress('');
+      setCity('');
+      setPostalCode('');
+      setDeliveryNotes('');
+      setDeliveryOptionId('store_pickup');
+      setExtraTradeIn(Boolean(checkoutPayload.type === 'single_bike' && checkoutPayload.data?.useTradeIn));
+      setExtraTradeInBike(
+        checkoutPayload.type === 'single_bike' && checkoutPayload.data?.tradeInModel
+          ? String(checkoutPayload.data.tradeInModel)
+          : ''
+      );
+    }
+  }, [isCheckoutModalOpen, checkoutPayload]);
 
   if (!isCheckoutModalOpen || !checkoutPayload) return null;
 
-  const totalEur = Math.round(checkoutPayload.totalEur);
-  const monthlyInbankEur = Math.max(10, Math.round(totalEur / leaseTermMonths));
-  const monthlyEstoEur = estoPlan === 'esto3' ? Math.round(totalEur / 3) : Math.max(10, Math.round(totalEur / leaseTermMonths));
+  const subtotalEur = Math.max(0, Math.round(checkoutPayload.totalEur));
+  const discountEur = appliedPromo === 'VENTVELO5' ? Math.round(subtotalEur * 0.05) : 0;
+  const afterDiscountEur = Math.max(0, subtotalEur - discountEur);
 
-  const handlePay = (e: React.FormEvent) => {
+  const getShippingCost = (optId: DeliveryOptionId): number => {
+    if (optId === 'service_included') return 0;
+    const opt = DELIVERY_OPTIONS.find((o) => o.id === optId);
+    if (!opt) return 0;
+    if (opt.freeThresholdEur !== null && afterDiscountEur >= opt.freeThresholdEur) {
+      return 0;
+    }
+    return opt.baseFeeEur;
+  };
+
+  const selectedDeliveryConfig =
+    deliveryOptionId === 'service_included'
+      ? {
+          id: 'service_included' as const,
+          title:
+            checkoutPayload.data?.deliveryType === 'van_pickup'
+              ? `Servisa busa piegāde (${checkoutPayload.data?.pickupLocation?.region || 'Ventspils'}) — iekļauta tāmē`
+              : 'Darbnīcā Rindas ielā 44 — iekļauta tāmē',
+          subtitle: 'Piegāde un izpilde saskaņota servisa pieteikumā',
+          baseFeeEur: 0,
+          freeThresholdEur: 0,
+          methodType: (checkoutPayload.data?.deliveryType === 'van_pickup' ? 'van_delivery' : 'store_pickup') as
+            | 'van_delivery'
+            | 'store_pickup',
+        }
+      : DELIVERY_OPTIONS.find((o) => o.id === deliveryOptionId) || DELIVERY_OPTIONS[0];
+
+  const shippingEur = unlockedStep >= 3 || activeStep >= 3 ? getShippingCost(deliveryOptionId) : 0;
+  const grandTotalEur = Math.max(0, afterDiscountEur + shippingEur);
+
+  // Financing calculations (Incredit)
+  const clampedFirstPayment = Math.min(Math.max(0, Math.round(firstPaymentEur)), Math.max(0, grandTotalEur - 30));
+  const financedAmountEur = Math.max(0, grandTotalEur - clampedFirstPayment);
+  const monthlyIncreditEur = Math.max(10, Math.round(financedAmountEur / leaseTermMonths));
+
+  // Right column summary line items
+  const summaryItems: CartItem[] =
+    checkoutPayload.type === 'cart'
+      ? cart
+      : checkoutPayload.type === 'single_bike'
+        ? [
+            {
+              id: 'single_bike_preview',
+              type: 'bike',
+              productId: checkoutPayload.data?.id || 'bike',
+              name: checkoutPayload.data?.name || checkoutPayload.title,
+              priceEur: subtotalEur,
+              quantity: 1,
+              image: checkoutPayload.data?.image,
+              details: `Izmērs: ${checkoutPayload.data?.selectedSize || 'Standarts'}${
+                checkoutPayload.data?.assemblyOption === 'box'
+                  ? ' · Kastē'
+                  : ' · Meistara salikts (+€35) ar garantiju'
+              }`,
+            },
+          ]
+        : checkoutPayload.type === 'rental'
+          ? [
+              {
+                id: 'rental_preview',
+                type: 'rental',
+                productId: checkoutPayload.data?.id || 'rental',
+                name: checkoutPayload.title,
+                priceEur: subtotalEur,
+                quantity: 1,
+                image: checkoutPayload.data?.image,
+                details: `${checkoutPayload.data?.durationLabel || ''} · ${checkoutPayload.data?.startDate || ''}`,
+              },
+            ]
+          : [
+              {
+                id: 'service_preview',
+                type: 'service',
+                productId: checkoutPayload.data?.id || 'service',
+                name: checkoutPayload.title,
+                priceEur: subtotalEur,
+                quantity: 1,
+                details: checkoutPayload.data?.bikeModel || 'Velosipēda apkope',
+              },
+            ];
+
+  const handleApplyPromo = () => {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) {
+      setPromoMessage('Ievadi atlaides kodu, piemēram, VENTVELO5.');
+      return;
+    }
+    if (code === 'VENTVELO5') {
+      setAppliedPromo('VENTVELO5');
+      setPromoMessage('Atlaide 5% apmērā piemērota!');
+    } else {
+      setPromoMessage('Nederīgs kods. Aktīvais kods: VENTVELO5 (-5%).');
+    }
+  };
+
+  const handleStep1Continue = () => {
+    setStepError(null);
+    if (customerType === 'company' && !companyName.trim()) {
+      setStepError('Lūdzu, norādi uzņēmuma nosaukumu.');
+      return;
+    }
+    if (!firstName.trim() || !lastName.trim()) {
+      setStepError('Lūdzu, ievadi vārdu un uzvārdu.');
+      return;
+    }
+    if (!customerEmail.trim() || !customerEmail.includes('@')) {
+      setStepError('Lūdzu, ievadi korektu e-pasta adresi rēķinam un apstiprinājumam.');
+      return;
+    }
+    if (customerPhone.replace(/\D/g, '').length < 7) {
+      setStepError('Lūdzu, ievadi tālruņa numuru saziņai par piegādi.');
+      return;
+    }
+    if (!termsAccepted) {
+      setStepError('Lai turpinātu, apstiprini iepazīšanos ar lietošanas noteikumiem un privātuma politiku.');
+      return;
+    }
+    setUnlockedStep((prev) => (prev < 2 ? 2 : prev));
+    setActiveStep(2);
+  };
+
+  const handleStep2Continue = () => {
+    setStepError(null);
+    if (addressMode === 'address') {
+      if (!streetAddress.trim() || !city.trim()) {
+        setStepError('Lūdzu, norādi piegādes ielu/māju un pilsētu vai pagastu, vai izvēlies saņemšanu veikalā.');
+        return;
+      }
+    } else {
+      if (deliveryOptionId !== 'service_included') {
+        setDeliveryOptionId('store_pickup');
+      }
+    }
+    setUnlockedStep((prev) => (prev < 3 ? 3 : prev));
+    setActiveStep(3);
+  };
+
+  const handleStep3Continue = () => {
+    setStepError(null);
+    if (deliveryOptionId === 'store_pickup' && paymentMethod === 'cash_onsite') {
+      setCashSubMethod('store_cash_card');
+    } else if (deliveryOptionId !== 'store_pickup' && paymentMethod === 'cash_onsite') {
+      setCashSubMethod('courier_cash_pos');
+    }
+    setUnlockedStep(4);
+    setActiveStep(4);
+  };
+
+  const formatCardNumberInput = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, 16);
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+  };
+
+  const formatExpiryInput = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, 4);
+    if (digits.length <= 2) return digits;
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  };
+
+  const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
+    setStepError(null);
+
+    if (paymentMethod === 'card') {
+      const cardDigits = cardNumber.replace(/\D/g, '');
+      if (!cardName.trim()) {
+        setStepError('Lūdzu, ievadi kartes īpašnieka vārdu un uzvārdu.');
+        return;
+      }
+      if (cardDigits.length < 12) {
+        setStepError('Lūdzu, ievadi derīgu bankas kartes numuru.');
+        return;
+      }
+      if (cardExpiry.length < 4 || cardCvc.replace(/\D/g, '').length < 3) {
+        setStepError('Lūdzu, pārbaudi kartes derīguma termiņu un CVC kodu.');
+        return;
+      }
+    }
+
     setIsProcessing(true);
 
     setTimeout(() => {
       setIsProcessing(false);
-      setIsSuccess(true);
       const orderNum = `VV-ORD-${Math.floor(1000 + Math.random() * 9000)}`;
-      setConfirmedOrderNumber(orderNum);
-
-      const itemsToRecord = checkoutPayload.type === 'cart' 
-        ? cart 
-        : checkoutPayload.type === 'single_bike'
-          ? [{
-              id: `ci_${Date.now()}`,
-              type: 'bike' as const,
-              productId: checkoutPayload.data.id,
-              name: checkoutPayload.data.name,
-              priceEur: totalEur,
-              quantity: 1,
-              details: `Izmērs: ${checkoutPayload.data.selectedSize}${checkoutPayload.data.assemblyOption === 'box' ? ' · Kastē (bez garantijas)' : ' · Meistara salikts (+€35) ar garantiju'}`,
-            }]
-          : checkoutPayload.type === 'rental'
-            ? [{
-                id: `ci_${Date.now()}`,
-                type: 'rental' as const,
-                productId: checkoutPayload.data?.id || 'bike_rental',
-                name: checkoutPayload.title,
-                priceEur: totalEur,
-                quantity: 1,
-                details: `${checkoutPayload.data?.deliveryLabel || 'Saņemšana Rindas ielā 44'} · Ķivere un slēdzene iekļauta`,
-              }]
-            : [{
-                id: `ci_${Date.now()}`,
-                type: 'service' as const,
-                productId: checkoutPayload.data?.id || 'service_job',
-                name: checkoutPayload.title,
-                priceEur: totalEur,
-                quantity: 1,
-              }];
-
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim() || 'Klients';
       const digitsOnly = cardNumber.replace(/\D/g, '');
+
       const resolvedMethod =
-        paymentMethod === 'card'
-          ? (digitsOnly.length >= 4 ? `Bankas karte (••• ${digitsOnly.slice(-4)})` : 'Bankas karte')
-          : paymentMethod === 'banklink'
-            ? `${selectedBank.toUpperCase()} BankLink`
-            : paymentMethod === 'inbank'
-              ? `Inbank līzings (${leaseTermMonths} mēn. · ~${formatPrice(monthlyInbankEur)}/mēn.)${extraTradeIn ? ' + Vecā velo maiņa' : ''}`
-              : paymentMethod === 'esto'
-                ? `ESTO nomaksa (${estoPlan === 'esto3' ? '3 daļās bez %' : `${leaseTermMonths} mēn.`})${extraTradeIn ? ' + Vecā velo maiņa' : ''}`
-                : 'Maksājums pie busiņa vai veikalā Rindas 44';
+        paymentMethod === 'incredit'
+          ? `Incredit nomaksa (${leaseTermMonths} mēn. · ~${formatPrice(monthlyIncreditEur)}/mēn.${
+              clampedFirstPayment > 0 ? ` · Pirmā iemaksa ${formatPrice(clampedFirstPayment)}` : ''
+            }${extraTradeIn ? ' + Vecā velo maiņa' : ''})`
+          : paymentMethod === 'card'
+            ? digitsOnly.length >= 4
+              ? `Bankas karte (••• ${digitsOnly.slice(-4)})`
+              : 'Bankas karte (Visa / Mastercard)'
+            : paymentMethod === 'banklink'
+              ? `${selectedBank.toUpperCase()} internetbanka`
+              : cashSubMethod === 'store_cash_card'
+                ? 'Skaidrā naudā vai ar karti veikalā (Rindas iela 44)'
+                : 'Skaidrā naudā vai terminālī piegādes brīdī';
 
       const guaranteeDuration =
         checkoutPayload.type === 'rental'
@@ -118,24 +411,38 @@ export const PaymentGatewayModal: React.FC = () => {
             ? 0
             : 24;
 
-      const order: OrderRecord = {
+      const fullAddress =
+        addressMode === 'store' || selectedDeliveryConfig.methodType === 'store_pickup'
+          ? 'Saņemšana veikalā Rindas iela 44, Ventspils'
+          : [streetAddress.trim(), city.trim(), postalCode.trim()].filter(Boolean).join(', ');
+
+      const newOrder: OrderRecord = {
         id: `ord_${Date.now()}`,
         orderNumber: orderNum,
         createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        items: itemsToRecord,
-        subtotalEur: totalEur,
-        shippingEur: 0,
-        totalEur,
+        items: summaryItems.map((it) => ({
+          id: it.id,
+          type: it.type,
+          productId: it.productId,
+          name: it.name,
+          priceEur: it.priceEur,
+          quantity: it.quantity,
+          image: it.image,
+          details: it.details,
+        })),
+        subtotalEur: afterDiscountEur,
+        shippingEur,
+        totalEur: grandTotalEur,
         currency,
         customer: {
-          name: customerName.trim() || cardName.trim() || 'Klients',
+          name: customerType === 'company' && companyName ? `${fullName} (${companyName})` : fullName,
           email: customerEmail.trim(),
           phone: customerPhone.trim(),
-          address: shippingAddress.trim() || 'Saņemšana Rindas ielā 44 / vienojoties',
-          city: 'Ventspils',
+          address: fullAddress,
+          city: addressMode === 'store' ? 'Ventspils' : city.trim() || 'Ventspils / Talsu rajons',
         },
-        deliveryMethod: 'van_delivery',
-        paymentStatus: 'paid',
+        deliveryMethod: selectedDeliveryConfig.methodType,
+        paymentStatus: paymentMethod === 'card' || paymentMethod === 'banklink' ? 'paid' : 'pending',
         paymentMethod: resolvedMethod,
         trackingCode: `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
         guaranteeCertificates: [
@@ -148,20 +455,20 @@ export const PaymentGatewayModal: React.FC = () => {
                 : guaranteeDuration > 0
                   ? `CERT-${Math.floor(1000 + Math.random() * 9000)}`
                   : 'BEZ-GARANTIJAS-KASTE',
-          }
+          },
         ],
       };
 
-      addOrder(order);
+      addOrder(newOrder);
+      setConfirmedOrder(newOrder);
+      setIsSuccess(true);
 
-      // Automated email notification in natural Latvian
-      const resolvedCustomerName = customerName.trim() || cardName.trim() || 'Klients';
       const email: EmailNotification = {
         id: `em_${Date.now()}`,
-        recipientEmail: customerEmail.trim() || 'klienti@ventvelo.lv',
-        recipientName: resolvedCustomerName,
-        subject: `Maksājuma čeks un pasūtījums apstiprināts [${orderNum}]`,
-        previewText: `Paldies par apmaksu ${formatPrice(totalEur)} apmērā! Pasūtījums ir apstiprināts.`,
+        recipientEmail: customerEmail.trim() || 'melnakmens@gmail.com',
+        recipientName: fullName,
+        subject: `VentVelo pasūtījums apstiprināts [${orderNum}]`,
+        previewText: `Pasūtījums ${orderNum} (${formatPrice(grandTotalEur)}) reģistrēts. Norēķinu veids: ${resolvedMethod}.`,
         category: 'order_confirmation',
         timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
         referenceId: orderNum,
@@ -169,25 +476,24 @@ export const PaymentGatewayModal: React.FC = () => {
         htmlContent: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #1c1917; line-height: 1.6;">
             <div style="background-color: #1c1917; padding: 24px; color: #ffffff; border-radius: 8px 8px 0 0;">
-              <h2 style="margin: 0; font-size: 20px; font-weight: 700;">VentVelo maksājuma kvīts</h2>
-              <p style="margin: 4px 0 0; font-size: 13px; color: #a8a29e;">Rēķina nr.: ${orderNum}</p>
+              <h2 style="margin: 0; font-size: 20px; font-weight: 700;">VentVelo pasūtījuma apstiprinājums</h2>
+              <p style="margin: 4px 0 0; font-size: 13px; color: #a8a29e;">Pasūtījuma nr.: ${orderNum}</p>
             </div>
             <div style="padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
-              <p>Labdien${resolvedCustomerName !== 'Klients' ? `, ${resolvedCustomerName}` : ''}! Esam veiksmīgi saņēmuši Jūsu maksājumu <strong>${formatPrice(totalEur)}</strong> apmērā caur drošo 256-bitu šifrēto kanālu.</p>
-              
+              <p>Labdien, ${fullName}! Jūsu pasūtījums ir veiksmīgi pieņemts.</p>
               <div style="background: #fafaf9; border-radius: 6px; padding: 16px; margin: 20px 0; border: 1px solid #e7e5e4;">
-                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #78716c;">DARĪJUMA INFORMĀCIJA</p>
+                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #78716c;">PASŪTĪJUMA DETAĻAS</p>
                 <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #1c1917;">
-                  <li><strong>Pasūtījuma numurs:</strong> ${orderNum}</li>
                   <li><strong>Prece / Pakalpojums:</strong> ${checkoutPayload.title}</li>
-                  <li><strong>Samaksātā summa:</strong> ${formatPrice(totalEur)} (${currency})</li>
-                  <li><strong>Norēķinu veids:</strong> ${order.paymentMethod}</li>
-                  <li><strong>Saņemšana:</strong> Servisa busiņa piegāde / Saņemšana darbnīcā</li>
+                  <li><strong>Piegāde:</strong> ${selectedDeliveryConfig.title} (${shippingEur === 0 ? 'Bezmaksas' : formatPrice(shippingEur)})</li>
+                  <li><strong>Adrese:</strong> ${fullAddress}</li>
+                  <li><strong>Kopā (ar PVN):</strong> ${formatPrice(grandTotalEur)}</li>
+                  <li><strong>Apmaksas veids:</strong> ${resolvedMethod}</li>
+                  ${extraTradeIn && extraTradeInBike ? `<li><strong>Vecā riteņa maiņa:</strong> ${extraTradeInBike}</li>` : ''}
                 </ul>
               </div>
-
               <p style="font-size: 13px; color: #57534e;">
-                Visi iegādātie produkti un to garantiju sertifikāti ir pastāvīgi pieejami Jūsu VentVelo Garāžas kontā.
+                Mūsu meistars Raivis sazināsies ar Jums pa tālruni ${customerPhone}, lai precizētu saņemšanas vai līzinga parakstīšanas laiku.
               </p>
             </div>
           </div>
@@ -198,7 +504,7 @@ export const PaymentGatewayModal: React.FC = () => {
       if (checkoutPayload.type === 'cart') {
         clearCart();
       }
-    }, 1200);
+    }, 900);
   };
 
   const handleClose = () => {
@@ -206,63 +512,122 @@ export const PaymentGatewayModal: React.FC = () => {
     setIsSuccess(false);
   };
 
+  const bankLabels: Record<typeof selectedBank, string> = {
+    swedbank: 'Swedbank',
+    seb: 'SEB banka',
+    citadele: 'Citadele',
+    luminor: 'Luminor',
+  };
+
+  const getSubmitButtonLabel = () => {
+    if (isProcessing) return 'Sagatavo pasūtījumu...';
+    if (paymentMethod === 'incredit') {
+      return `Apstiprināt un noformēt Incredit nomaksu (~${formatPrice(monthlyIncreditEur)}/mēn.)`;
+    }
+    if (paymentMethod === 'card') {
+      return `Droši apmaksāt ar karti (${formatPrice(grandTotalEur)})`;
+    }
+    if (paymentMethod === 'banklink') {
+      return `Turpināt uz ${bankLabels[selectedBank]} (${formatPrice(grandTotalEur)})`;
+    }
+    return `Apstiprināt pasūtījumu — apmaksa uz vietas (${formatPrice(grandTotalEur)})`;
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white border border-stone-200 rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        
-        {/* Modal Header */}
-        <div className="bg-stone-900 text-white px-6 py-4 flex items-center justify-between border-b border-stone-800 shrink-0">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-amber-400" />
-            <h3 className="font-bold text-base text-white font-heading">VentVelo drošā maksājumu vārteja</h3>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/75 backdrop-blur-xs flex items-start sm:items-center justify-center p-2 sm:p-5">
+      <div className="bg-stone-50 border border-stone-200 rounded-2xl max-w-5xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+        {/* Top Bar */}
+        <div className="bg-stone-900 text-white px-5 sm:px-7 py-4 flex items-center justify-between border-b border-stone-800 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-amber-400" />
+            </div>
+            <div>
+              <h2 className="font-bold text-base sm:text-lg text-white font-heading leading-tight">
+                Pasūtījuma noformēšana
+              </h2>
+              <p className="text-[11px] text-stone-400">
+                VentVelo kase · Rindas iela 44, Ventspils · Droša šifrēta datu apstrāde
+              </p>
+            </div>
           </div>
-          <button 
+          <button
+            type="button"
             onClick={handleClose}
-            className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors cursor-pointer"
+            className="p-2 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors cursor-pointer"
+            aria-label="Aizvērt kases logu"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6">
-          {isSuccess ? (
-            /* Success confirmation screen */
-            <div className="text-center py-6 space-y-4">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+        {/* Body */}
+        <div className="overflow-y-auto flex-1 p-4 sm:p-6">
+          {isSuccess && confirmedOrder ? (
+            /* Confirmation View */
+            <div className="max-w-xl mx-auto bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 text-center space-y-5 shadow-xs my-4">
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
                 <Check className="w-8 h-8" />
               </div>
-              <h3 className="text-2xl font-bold text-stone-950 font-heading">
-                Maksājums autorizēts un apstiprināts!
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-600 max-w-md mx-auto leading-relaxed">
-                Paldies{(customerName || cardName) ? `, ${customerName || cardName}` : ''}! Jūsu pasūtījums <strong className="text-stone-900 font-mono">#{confirmedOrderNumber}</strong> ir veiksmīgi reģistrēts. Automātisks apstiprinājuma paziņojums ir sagatavots.
-              </p>
-              
-              <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs max-w-md mx-auto space-y-2 text-left">
-                <div className="flex justify-between">
-                  <span className="text-stone-500">Ieturētā summa:</span>
-                  <span className="font-mono font-bold text-stone-900">{formatPrice(totalEur)}</span>
+
+              <div className="space-y-1.5">
+                <h3 className="text-2xl font-bold text-stone-950 font-heading">
+                  {paymentMethod === 'cash_onsite'
+                    ? 'Pasūtījums apstiprināts un rezervēts!'
+                    : paymentMethod === 'incredit'
+                      ? 'Pasūtījums reģistrēts Incredit nomaksai!'
+                      : 'Maksājums apstiprināts un pasūtījums pieņemts!'}
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Paldies, <strong className="text-stone-900">{confirmedOrder.customer.name}</strong>! Jūsu pasūtījuma
+                  numurs ir <strong className="font-mono text-stone-950">#{confirmedOrder.orderNumber}</strong>.
+                </p>
+              </div>
+
+              {paymentMethod === 'incredit' && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left text-xs text-stone-800 space-y-1">
+                  <div className="font-bold text-stone-950">
+                    Nākamais solis (Incredit nomaksa):
+                  </div>
+                  <p className="leading-relaxed">
+                    Incredit nomaksas pieteikuma saite ar Smart-ID / eParaksts parakstīšanu ir nosūtīta uz{' '}
+                    <strong>{confirmedOrder.customer.email}</strong>. Pēc līguma apstiprināšanas meistars Raivis sagatavos
+                    velosipēdu saņemšanai vai piegādei.
+                  </p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-stone-500">Apstrādātā valūta:</span>
-                  <span className="font-semibold text-stone-900">{currency}</span>
+              )}
+
+              <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs space-y-2 text-left">
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Summa (ar PVN):</span>
+                  <span className="font-mono font-bold text-stone-950 tabular-nums">
+                    {formatPrice(confirmedOrder.totalEur)}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-stone-500">Loģistika:</span>
-                  <span className="font-semibold text-stone-900">Servisa buss / Saņemšana darbnīcā</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Apmaksas veids:</span>
+                  <span className="font-semibold text-stone-900 text-right">{confirmedOrder.paymentMethod}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Piegādes veids:</span>
+                  <span className="font-semibold text-stone-900 text-right">{selectedDeliveryConfig.title}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-stone-500">Adrese / Saņemšana:</span>
+                  <span className="font-medium text-stone-800 text-right">{confirmedOrder.customer.address}</span>
                 </div>
               </div>
 
-              <div className="pt-4 flex flex-wrap justify-center gap-3">
+              <div className="pt-2 flex flex-wrap justify-center gap-3">
                 <button
+                  type="button"
                   onClick={() => {
                     handleClose();
                     setActiveTab('dashboard');
                   }}
-                  className="px-6 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-xs"
+                  className="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-xs"
                 >
-                  Skatīt manā velogaražā un pirkumu vēsturē
+                  Skatīt pirkumu vēsturē
                 </button>
                 <a
                   href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
@@ -270,381 +635,1096 @@ export const PaymentGatewayModal: React.FC = () => {
                   rel="noopener noreferrer"
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-xs inline-flex items-center gap-1.5"
                 >
-                  <span>Rakstīt WhatsApp meistaram</span>
+                  <span>Sazināties WhatsApp ar meistaru</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
           ) : (
-            /* Checkout Form */
-            <form onSubmit={handlePay} className="space-y-6">
-              
-              {/* Order line summary */}
-              <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-stone-500 block">Kopā apmaksai:</span>
-                  <span className="text-2xl font-bold font-mono text-stone-950 tabular-nums">
-                    {formatPrice(totalEur)}
-                  </span>
-                </div>
-                <div className="text-right text-xs">
-                  <span className="font-semibold text-stone-900 block truncate max-w-[220px]">
-                    {checkoutPayload.title}
-                  </span>
-                  <span className="text-stone-500 font-mono">Valūta: {currency}</span>
-                </div>
-              </div>
-
-              {/* Payment Method Selector */}
-              <div className="space-y-3">
-                <label className="block text-xs font-semibold text-stone-800 uppercase tracking-wider">
-                  Izvēlies apmaksas vai līzinga veidu:
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('inbank')}
-                    className={`p-3 rounded-xl border text-left text-xs transition-all cursor-pointer relative ${
-                      paymentMethod === 'inbank'
-                        ? 'border-emerald-600 bg-emerald-50/70 font-semibold text-stone-900 ring-1 ring-emerald-500/30 shadow-xs'
-                        : 'border-emerald-200 bg-emerald-50/20 hover:bg-emerald-50/50 text-stone-800'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                      <span className="text-[10px] font-bold uppercase text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">Populārs</span>
-                    </div>
-                    <div className="font-bold text-stone-900">Inbank līzings</div>
-                    <div className="text-[11px] text-stone-600 tabular-nums">No ~{formatPrice(Math.max(10, Math.round(totalEur / 36)))}/mēn.</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('esto')}
-                    className={`p-3 rounded-xl border text-left text-xs transition-all cursor-pointer relative ${
-                      paymentMethod === 'esto'
-                        ? 'border-amber-500 bg-amber-50 font-semibold text-stone-900 ring-1 ring-amber-500/30 shadow-xs'
-                        : 'border-amber-200 bg-amber-50/30 hover:bg-amber-50/60 text-stone-800'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <CheckCircle2 className="w-4 h-4 text-amber-600" />
-                      <span className="text-[10px] font-bold uppercase text-amber-900 bg-amber-200/70 px-1.5 py-0.5 rounded">0% ESTO 3</span>
-                    </div>
-                    <div className="font-bold text-stone-900">ESTO nomaksa</div>
-                    <div className="text-[11px] text-stone-600 tabular-nums">3 × {formatPrice(Math.round(totalEur / 3))} bez %</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('card')}
-                    className={`p-3 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
-                      paymentMethod === 'card'
-                        ? 'border-stone-900 bg-stone-100 font-semibold text-stone-900 shadow-xs'
-                        : 'border-stone-200 hover:bg-stone-50 text-stone-600'
-                    }`}
-                  >
-                    <CreditCard className="w-4 h-4 mb-1 text-stone-700" />
-                    <div className="font-semibold text-stone-900">Bankas karte</div>
-                    <div className="text-[11px] text-stone-500">Visa / Mastercard</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('banklink')}
-                    className={`p-3 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
-                      paymentMethod === 'banklink'
-                        ? 'border-stone-900 bg-stone-100 font-semibold text-stone-900 shadow-xs'
-                        : 'border-stone-200 hover:bg-stone-50 text-stone-600'
-                    }`}
-                  >
-                    <Building className="w-4 h-4 mb-1 text-stone-700" />
-                    <div className="font-semibold text-stone-900">Internetbanka</div>
-                    <div className="text-[11px] text-stone-500">Swedbank · SEB · Citadele</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('van_pos')}
-                    className={`p-3 rounded-xl border text-left text-xs transition-colors cursor-pointer col-span-2 ${
-                      paymentMethod === 'van_pos'
-                        ? 'border-stone-900 bg-stone-100 font-semibold text-stone-900 shadow-xs'
-                        : 'border-stone-200 hover:bg-stone-50 text-stone-600'
-                    }`}
-                  >
-                    <Truck className="w-4 h-4 mb-1 text-stone-700" />
-                    <div className="font-semibold text-stone-900">Maksāt pie busiņa vai veikalā Rindas ielā 44</div>
-                    <div className="text-[11px] text-stone-500">Ar karti, skaidrā naudā vai vecā riteņa maiņa uz vietas</div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Card Form */}
-              {paymentMethod === 'card' && (
-                <div className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs">
-                  <div>
-                    <label className="block text-stone-700 font-medium mb-1">Kartes īpašnieka Vārds, Uzvārds</label>
-                    <input
-                      type="text"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                      placeholder="Vārds Uzvārds"
-                      className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
-                      required
-                    />
+            /* 2-Column Veloprofs-Style Checkout Layout */
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* RIGHT COLUMN: Order Summary & Promo Code */}
+              <aside className="lg:col-span-4 lg:order-2 lg:sticky lg:top-0 space-y-4">
+                <div className="bg-white border border-stone-200 rounded-xl shadow-xs overflow-hidden">
+                  {/* Items Count & Toggle */}
+                  <div className="px-5 py-3.5 border-b border-stone-200 flex items-center justify-between bg-stone-50/70">
+                    <span className="text-xs font-bold text-stone-900">
+                      {summaryItems.reduce((sum, i) => sum + i.quantity, 0)}{' '}
+                      {summaryItems.reduce((sum, i) => sum + i.quantity, 0) === 1 ? 'vienība' : 'vienības'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowOrderItems((prev) => !prev)}
+                      className="text-xs font-medium text-stone-600 hover:text-stone-950 inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>{showOrderItems ? 'paslēpt sīkāk' : 'parādīt sīkāk'}</span>
+                      {showOrderItems ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-stone-700 font-medium mb-1">Kartes numurs</label>
-                    <input
-                      type="text"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      placeholder="0000 0000 0000 0000"
-                      className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs font-mono"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-stone-700 font-medium mb-1">Derīguma termiņš MM/GG</label>
-                      <input
-                        type="text"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
-                        placeholder="MM/GG"
-                        className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs font-mono"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-stone-700 font-medium mb-1">CVC drošības kods</label>
-                      <input
-                        type="password"
-                        maxLength={4}
-                        value={cardCvc}
-                        onChange={(e) => setCardCvc(e.target.value)}
-                        placeholder="•••"
-                        className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs font-mono"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {/* BankLink Selector */}
-              {paymentMethod === 'banklink' && (
-                <div className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs">
-                  <label className="block text-stone-700 font-medium">Izvēlies savu internetbanku:</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { id: 'swedbank', name: 'Swedbank Latvija' },
-                      { id: 'seb', name: 'SEB banka' },
-                      { id: 'citadele', name: 'Citadele banka' },
-                      { id: 'luminor', name: 'Luminor Latvija' },
-                    ].map(bank => (
+                  {/* Expandable Items List */}
+                  {showOrderItems && (
+                    <div className="px-5 py-3 divide-y divide-stone-100 max-h-60 overflow-y-auto">
+                      {summaryItems.map((item) => (
+                        <div key={item.id} className="py-2.5 flex items-start gap-3">
+                          {item.image && (
+                            <BikeImage
+                              src={item.image}
+                              alt={item.name}
+                              className="w-12 h-12 rounded-lg object-contain bg-white border border-stone-200 p-0.5 shrink-0"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold text-stone-900 leading-snug line-clamp-2">
+                              {item.quantity > 1 ? `${item.quantity} × ` : ''}
+                              {item.name}
+                            </div>
+                            {item.details && (
+                              <div className="text-[11px] text-stone-500 mt-0.5 leading-snug">{item.details}</div>
+                            )}
+                          </div>
+                          <div className="text-xs font-mono font-bold text-stone-950 tabular-nums shrink-0">
+                            {formatPrice(item.priceEur * item.quantity)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Pricing Breakdown */}
+                  <div className="px-5 py-4 border-t border-stone-200 space-y-2 text-xs">
+                    <div className="flex justify-between text-stone-600">
+                      <span>Starpsumma</span>
+                      <span className="font-mono font-semibold text-stone-900 tabular-nums">
+                        {formatPrice(subtotalEur)}
+                      </span>
+                    </div>
+
+                    {discountEur > 0 && (
+                      <div className="flex justify-between text-emerald-700 font-medium">
+                        <span>Atlaide ({appliedPromo})</span>
+                        <span className="font-mono font-bold tabular-nums">-{formatPrice(discountEur)}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between text-stone-600">
+                      <span>Piegādes izmaksas</span>
+                      {unlockedStep >= 3 || activeStep >= 3 ? (
+                        <span className="font-mono font-semibold text-stone-900 tabular-nums">
+                          {shippingEur === 0 ? 'Bezmaksas (€0)' : formatPrice(shippingEur)}
+                        </span>
+                      ) : (
+                        <span className="text-stone-500">Izvēlies 3. solī</span>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t border-stone-200 flex items-baseline justify-between">
+                      <span className="text-sm font-bold text-stone-950 font-heading">Kopā (ar PVN)</span>
+                      <span className="text-xl font-bold font-mono text-stone-950 tabular-nums">
+                        {formatPrice(grandTotalEur)}
+                      </span>
+                    </div>
+
+                    {activeStep === 4 && paymentMethod === 'incredit' && (
+                      <div className="mt-2 pt-2.5 border-t border-dashed border-stone-200 space-y-1 text-[11px]">
+                        {clampedFirstPayment > 0 && (
+                          <div className="flex justify-between text-stone-600">
+                            <span>Pirmā iemaksa:</span>
+                            <span className="font-mono font-semibold text-stone-900 tabular-nums">
+                              {formatPrice(clampedFirstPayment)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-emerald-800 font-semibold">
+                          <span>Incredit ({leaseTermMonths} mēn.):</span>
+                          <span className="font-mono font-bold tabular-nums">
+                            ~{formatPrice(monthlyIncreditEur)}/mēn.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Promo Code Row */}
+                  <div className="px-5 py-3.5 bg-stone-50 border-t border-stone-200 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Tag className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={promoInput}
+                          onChange={(e) => setPromoInput(e.target.value)}
+                          placeholder="Atlaides vai kupona kods"
+                          className="w-full pl-8 pr-2.5 py-2 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                        />
+                      </div>
                       <button
-                        key={bank.id}
                         type="button"
-                        onClick={() => setSelectedBank(bank.id as any)}
-                        className={`p-3 rounded-lg border text-left cursor-pointer transition-colors ${
-                          selectedBank === bank.id
-                            ? 'border-amber-500 bg-white font-semibold text-stone-900 shadow-xs'
-                            : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
-                        }`}
+                        onClick={handleApplyPromo}
+                        className="px-3.5 py-2 bg-stone-200 hover:bg-stone-300 text-stone-900 text-xs font-semibold rounded-lg transition-colors cursor-pointer shrink-0"
                       >
-                        {bank.name}
+                        Pievienot
                       </button>
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-stone-500">
-                    Pēc pogas nospiešanas autorizācija notiek droši caur Tavas bankas Smart-ID vai kodu kalkulatoru.
-                  </p>
-                </div>
-              )}
-
-              {/* Inbank Leasing Panel */}
-              {paymentMethod === 'inbank' && (
-                <div className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-stone-900 text-sm">Inbank nomaksa un līzings</span>
-                    <span className="font-mono font-bold text-emerald-700 text-sm tabular-nums">
-                      ~{formatPrice(monthlyInbankEur)} / mēn.
-                    </span>
-                  </div>
-                  <div>
-                    <label className="block text-stone-600 mb-1.5">Izvēlies atmaksas termiņu:</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[6, 12, 24, 36].map(months => (
-                        <button
-                          key={months}
-                          type="button"
-                          onClick={() => setLeaseTermMonths(months)}
-                          className={`py-2 rounded-lg border font-semibold cursor-pointer transition-colors ${
-                            leaseTermMonths === months
-                              ? 'border-stone-900 bg-stone-900 text-white'
-                              : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'
-                          }`}
-                        >
-                          {months} mēn.
-                        </button>
-                      ))}
                     </div>
+                    {promoMessage && (
+                      <p className={`text-[11px] ${appliedPromo ? 'text-emerald-700 font-medium' : 'text-stone-600'}`}>
+                        {promoMessage}
+                      </p>
+                    )}
                   </div>
-                  <label className="flex items-center gap-2 pt-2 border-t border-stone-200 cursor-pointer text-stone-800">
-                    <input
-                      type="checkbox"
-                      checked={extraTradeIn}
-                      onChange={(e) => setExtraTradeIn(e.target.checked)}
-                      className="accent-amber-600"
-                    />
-                    <span className="font-medium">Vēlos nodot savu veco riteni kā pirmo iemaksu</span>
-                  </label>
-                  {extraTradeIn && (
-                    <input
-                      type="text"
-                      value={extraTradeInBike}
-                      onChange={(e) => setExtraTradeInBike(e.target.value)}
-                      placeholder="Ieraksti vecā velosipēda modeli un stāvokli..."
-                      className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
-                    />
-                  )}
-                  <p className="text-[11px] text-stone-500">
-                    Līguma parakstīšana ar Smart-ID vai eParaksts aizņem 2 minūtes. Pirmā iemaksa no €0 vai ar veco velosipēdu!
-                  </p>
                 </div>
-              )}
 
-              {/* ESTO Leasing Panel */}
-              {paymentMethod === 'esto' && (
-                <div className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-stone-900 text-sm">ESTO maksājumu plāns</span>
-                    <span className="font-mono font-bold text-amber-700 text-sm tabular-nums">
-                      ~{formatPrice(monthlyEstoEur)} / mēn.
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEstoPlan('esto3')}
-                      className={`p-3 rounded-lg border text-left cursor-pointer ${
-                        estoPlan === 'esto3'
-                          ? 'border-amber-500 bg-white font-semibold text-stone-900 shadow-xs'
-                          : 'border-stone-200 bg-white text-stone-600'
-                      }`}
-                    >
-                      <div className="font-bold">ESTO 3 (0% likme)</div>
-                      <div className="text-[11px] text-stone-500">3 vienādās daļās bez pārmaksas</div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEstoPlan('leasing')}
-                      className={`p-3 rounded-lg border text-left cursor-pointer ${
-                        estoPlan === 'leasing'
-                          ? 'border-amber-500 bg-white font-semibold text-stone-900 shadow-xs'
-                          : 'border-stone-200 bg-white text-stone-600'
-                      }`}
-                    >
-                      <div className="font-bold">ESTO nomaksa</div>
-                      <div className="text-[11px] text-stone-500">Līdz 36 mēnešiem</div>
-                    </button>
-                  </div>
-                  {estoPlan === 'leasing' && (
-                    <div className="grid grid-cols-4 gap-2 pt-1">
-                      {[6, 12, 24, 36].map(months => (
-                        <button
-                          key={months}
-                          type="button"
-                          onClick={() => setLeaseTermMonths(months)}
-                          className={`py-2 rounded-lg border font-semibold cursor-pointer ${
-                            leaseTermMonths === months
-                              ? 'border-stone-900 bg-stone-900 text-white'
-                              : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'
-                          }`}
-                        >
-                          {months} mēn.
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <label className="flex items-center gap-2 pt-2 border-t border-stone-200 cursor-pointer text-stone-800">
-                    <input
-                      type="checkbox"
-                      checked={extraTradeIn}
-                      onChange={(e) => setExtraTradeIn(e.target.checked)}
-                      className="accent-amber-600"
-                    />
-                    <span className="font-medium">Ieskaitīt veco riteni kā pirmo iemaksu</span>
-                  </label>
-                  {extraTradeIn && (
-                    <input
-                      type="text"
-                      value={extraTradeInBike}
-                      onChange={(e) => setExtraTradeInBike(e.target.value)}
-                      placeholder="Vecā velosipēda marka / stāvoklis..."
-                      className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
-                    />
-                  )}
-                  <p className="text-[11px] text-stone-500">
-                    Tūlītējs lēmums 60 sekundēs. Piegāde kastē vai samontētam veikalā Rindas ielā 44.
-                  </p>
-                </div>
-              )}
-
-              {/* Van POS notice */}
-              {paymentMethod === 'van_pos' && (
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs space-y-1 text-stone-800">
-                  <div className="font-bold text-stone-950 flex items-center gap-1.5">
-                    <Truck className="w-4 h-4 text-amber-600" />
-                    <span>Apmaksa pie busiņa šofera vai darbnīcā Rindas ielā 44</span>
+                {/* Compact Trust & Security Block */}
+                <div className="bg-white border border-stone-200 rounded-xl px-4 py-3 text-[11px] text-stone-600 space-y-1.5">
+                  <div className="flex items-center gap-2 text-emerald-700 font-semibold">
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
+                    <span>256-bitu SSL šifrēts savienojums</span>
                   </div>
                   <p className="leading-relaxed">
-                    Varēsi norēķināties ar bankas karti, telefonu, skaidrā naudā vai nodot savu veco riteni pirmajai iemaksai pie velosipēda saņemšanas.
+                    Jautājumi par Incredit nomaksu vai piegādi?{' '}
+                    <a
+                      href="https://api.whatsapp.com/message/CRYR7PFOHNY2J1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-stone-900 font-semibold underline"
+                    >
+                      Raksti WhatsApp meistaram
+                    </a>{' '}
+                    vai skati{' '}
+                    <button
+                      type="button"
+                      onClick={() => setIsSecurityModalOpen(true)}
+                      className="text-stone-900 font-semibold underline cursor-pointer"
+                    >
+                      GDPR noteikumus
+                    </button>
+                    .
                   </p>
                 </div>
-              )}
+              </aside>
 
-              {/* Security Badges Strip */}
-              <div className="pt-2 border-t border-stone-200 flex items-center justify-between text-xs text-stone-500">
-                <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>256-bitu SSL šifrēts savienojums</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsSecurityModalOpen(true)}
-                  className="hover:text-stone-900 underline cursor-pointer text-[11px]"
-                >
-                  GDPR un datu aizsardzība
-                </button>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isProcessing}
-                className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md font-heading"
-              >
-                {isProcessing ? (
-                  <span>Apstrādā pieprasījumu...</span>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4 text-amber-400" />
-                    <span>
-                      {paymentMethod === 'inbank'
-                        ? `Noformēt ar Inbank (~${formatPrice(monthlyInbankEur)}/mēn.)`
-                        : paymentMethod === 'esto'
-                          ? `Noformēt ar ESTO (~${formatPrice(monthlyEstoEur)}/mēn.)`
-                          : `Droši apmaksāt (${formatPrice(totalEur)})`}
-                    </span>
-                  </>
+              {/* LEFT COLUMN: 4-Step Veloprofs Accordion Flow */}
+              <div className="lg:col-span-8 lg:order-1 space-y-3">
+                {stepError && (
+                  <div className="bg-red-50 border border-red-200 text-red-800 text-xs font-medium px-4 py-3 rounded-xl">
+                    {stepError}
+                  </div>
                 )}
-              </button>
 
-            </form>
+                {/* STEP 1: Personīgā informācija */}
+                <section className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-xs">
+                  <div
+                    onClick={() => {
+                      if (activeStep !== 1) {
+                        setStepError(null);
+                        setActiveStep(1);
+                      }
+                    }}
+                    className={`px-5 py-4 flex items-center justify-between gap-3 ${
+                      activeStep !== 1 ? 'cursor-pointer hover:bg-stone-50/70' : 'border-b border-stone-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
+                          activeStep > 1
+                            ? 'bg-emerald-600 text-white'
+                            : activeStep === 1
+                              ? 'bg-stone-900 text-white'
+                              : 'bg-stone-100 text-stone-500'
+                        }`}
+                      >
+                        {activeStep > 1 ? <Check className="w-3.5 h-3.5" /> : '1'}
+                      </span>
+                      <div>
+                        <h3 className="font-bold text-sm sm:text-base text-stone-950 font-heading">
+                          Personīgā informācija
+                        </h3>
+                        {activeStep !== 1 && firstName && (
+                          <p className="text-xs text-stone-500 mt-0.5">
+                            {firstName} {lastName} · {customerEmail} · {customerPhone}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {activeStep !== 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStepError(null);
+                          setActiveStep(1);
+                        }}
+                        className="text-xs font-semibold text-stone-700 hover:text-stone-950 inline-flex items-center gap-1 cursor-pointer shrink-0"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Labot</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {activeStep === 1 && (
+                    <div className="p-5 sm:p-6 space-y-4 text-xs">
+                      {/* Customer Type */}
+                      <div className="flex flex-wrap items-center gap-5 pb-1">
+                        <span className="font-semibold text-stone-700 min-w-[110px]">Statuss</span>
+                        <label className="inline-flex items-center gap-2 cursor-pointer text-stone-900 font-medium">
+                          <input
+                            type="radio"
+                            name="customerType"
+                            checked={customerType === 'private'}
+                            onChange={() => setCustomerType('private')}
+                            className="accent-stone-900"
+                          />
+                          <span>Privātpersona</span>
+                        </label>
+                        <label className="inline-flex items-center gap-2 cursor-pointer text-stone-900 font-medium">
+                          <input
+                            type="radio"
+                            name="customerType"
+                            checked={customerType === 'company'}
+                            onChange={() => setCustomerType('company')}
+                            className="accent-stone-900"
+                          />
+                          <span>Uzņēmums (Juridiska persona)</span>
+                        </label>
+                      </div>
+
+                      {customerType === 'company' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-stone-50 p-3.5 rounded-xl border border-stone-200">
+                          <div>
+                            <label className="block text-stone-700 font-medium mb-1">Uzņēmuma nosaukums *</label>
+                            <input
+                              type="text"
+                              value={companyName}
+                              onChange={(e) => setCompanyName(e.target.value)}
+                              placeholder="SIA Nosaukums"
+                              className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-stone-700 font-medium mb-1">Reģ. Nr. / PVN Nr.</label>
+                            <input
+                              type="text"
+                              value={companyRegNo}
+                              onChange={(e) => setCompanyRegNo(e.target.value)}
+                              placeholder="LV4000..."
+                              className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="block text-stone-700 font-medium mb-1">Vārds *</label>
+                          <input
+                            type="text"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder="Ievadi vārdu"
+                            className="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-stone-700 font-medium mb-1">Uzvārds *</label>
+                          <input
+                            type="text"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            placeholder="Ievadi uzvārdu"
+                            className="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="block text-stone-700 font-medium mb-1">E-pasts *</label>
+                          <input
+                            type="email"
+                            value={customerEmail}
+                            onChange={(e) => setCustomerEmail(e.target.value)}
+                            placeholder="vards@epasts.lv"
+                            className="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                          />
+                          <p className="text-[11px] text-stone-500 mt-1">
+                            Rēķinam, līzinga saitei un garantijas sertifikātam
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-stone-700 font-medium mb-1">Tālrunis *</label>
+                          <input
+                            type="tel"
+                            value={customerPhone}
+                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            placeholder="+371 20000000"
+                            className="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                          />
+                          <p className="text-[11px] text-stone-500 mt-1">
+                            Meistara vai busiņa šofera saziņai pirms piegādes
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2.5 pt-2 border-t border-stone-100">
+                        <label className="flex items-start gap-2.5 cursor-pointer text-stone-700">
+                          <input
+                            type="checkbox"
+                            checked={newsletterOptIn}
+                            onChange={(e) => setNewsletterOptIn(e.target.checked)}
+                            className="mt-0.5 accent-stone-900"
+                          />
+                          <span>Vēlos saņemt sezonas velo apkopes atgādinājumus un jaunumus</span>
+                        </label>
+
+                        <label className="flex items-start gap-2.5 cursor-pointer text-stone-900 font-medium">
+                          <input
+                            type="checkbox"
+                            checked={termsAccepted}
+                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                            className="mt-0.5 accent-stone-900"
+                          />
+                          <span>
+                            Es piekrītu veikala lietošanas noteikumiem un{' '}
+                            <button
+                              type="button"
+                              onClick={() => setIsSecurityModalOpen(true)}
+                              className="underline hover:text-amber-700 cursor-pointer"
+                            >
+                              privātuma politikai
+                            </button>{' '}
+                            *
+                          </span>
+                        </label>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleStep1Continue}
+                        className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer font-heading"
+                      >
+                        Turpināt
+                      </button>
+                    </div>
+                  )}
+                </section>
+
+                {/* STEP 2: Adreses */}
+                <section className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-xs">
+                  <div
+                    onClick={() => {
+                      if (unlockedStep >= 2 && activeStep !== 2) {
+                        setStepError(null);
+                        setActiveStep(2);
+                      }
+                    }}
+                    className={`px-5 py-4 flex items-center justify-between gap-3 ${
+                      unlockedStep >= 2 && activeStep !== 2
+                        ? 'cursor-pointer hover:bg-stone-50/70'
+                        : activeStep === 2
+                          ? 'border-b border-stone-200'
+                          : 'opacity-65'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
+                          unlockedStep > 2 && activeStep !== 2
+                            ? 'bg-emerald-600 text-white'
+                            : activeStep === 2
+                              ? 'bg-stone-900 text-white'
+                              : 'bg-stone-100 text-stone-500'
+                        }`}
+                      >
+                        {unlockedStep > 2 && activeStep !== 2 ? <Check className="w-3.5 h-3.5" /> : '2'}
+                      </span>
+                      <div>
+                        <h3 className="font-bold text-sm sm:text-base text-stone-950 font-heading">
+                          Piegādes adrese
+                        </h3>
+                        {unlockedStep > 2 && activeStep !== 2 && (
+                          <p className="text-xs text-stone-500 mt-0.5">
+                            {addressMode === 'store'
+                              ? 'Saņemšu klātienē veikalā Rindas ielā 44, Ventspilī'
+                              : [streetAddress, city, postalCode].filter(Boolean).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {unlockedStep >= 2 && activeStep !== 2 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStepError(null);
+                          setActiveStep(2);
+                        }}
+                        className="text-xs font-semibold text-stone-700 hover:text-stone-950 inline-flex items-center gap-1 cursor-pointer shrink-0"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Labot</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {activeStep === 2 && (
+                    <div className="p-5 sm:p-6 space-y-4 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setAddressMode('store')}
+                          className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            addressMode === 'store'
+                              ? 'border-stone-900 bg-stone-50 ring-1 ring-stone-900/20'
+                              : 'border-stone-200 hover:bg-stone-50'
+                          }`}
+                        >
+                          <div className="font-bold text-stone-950 flex items-center gap-1.5">
+                            <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span>Saņemšu veikalā Rindas ielā 44</span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 mt-1">
+                            Nav jāievada mājas adrese — paņem savu velo klātienē Ventspilī
+                          </p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setAddressMode('address')}
+                          className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            addressMode === 'address'
+                              ? 'border-stone-900 bg-stone-50 ring-1 ring-stone-900/20'
+                              : 'border-stone-200 hover:bg-stone-50'
+                          }`}
+                        >
+                          <div className="font-bold text-stone-950 flex items-center gap-1.5">
+                            <Truck className="w-4 h-4 text-stone-700 shrink-0" />
+                            <span>Vēlos piegādi uz adresi</span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 mt-1">
+                            VentVelo servisa buss (Ventspils, Usma un Talsu rajons)
+                          </p>
+                        </button>
+                      </div>
+
+                      {addressMode === 'address' && (
+                        <div className="space-y-3.5 pt-1">
+                          <div>
+                            <label className="block text-stone-700 font-medium mb-1">
+                              Iela, mājas un dzīvokļa numurs *
+                            </label>
+                            <input
+                              type="text"
+                              value={streetAddress}
+                              onChange={(e) => setStreetAddress(e.target.value)}
+                              placeholder="piem., Lielais prospekts 10–15"
+                              className="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                              <label className="block text-stone-700 font-medium mb-1">Pilsēta / Pagasts *</label>
+                              <input
+                                type="text"
+                                value={city}
+                                onChange={(e) => setCity(e.target.value)}
+                                placeholder="piem., Ventspils, Usma, Talsi"
+                                className="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-stone-700 font-medium mb-1">Pasta indekss</label>
+                              <input
+                                type="text"
+                                value={postalCode}
+                                onChange={(e) => setPostalCode(e.target.value)}
+                                placeholder="LV-3601"
+                                className="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-stone-700 font-medium mb-1">
+                              Piezīmes servisa busa šoferim (neobligāti)
+                            </label>
+                            <input
+                              type="text"
+                              value={deliveryNotes}
+                              onChange={(e) => setDeliveryNotes(e.target.value)}
+                              placeholder="Vārtu kods, vēlamais piegādes laiks u.c."
+                              className="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-xs focus:outline-none focus:border-stone-900"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleStep2Continue}
+                        className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer font-heading"
+                      >
+                        Turpināt
+                      </button>
+                    </div>
+                  )}
+                </section>
+
+                {/* STEP 3: Piegādes veids */}
+                <section className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-xs">
+                  <div
+                    onClick={() => {
+                      if (unlockedStep >= 3 && activeStep !== 3) {
+                        setStepError(null);
+                        setActiveStep(3);
+                      }
+                    }}
+                    className={`px-5 py-4 flex items-center justify-between gap-3 ${
+                      unlockedStep >= 3 && activeStep !== 3
+                        ? 'cursor-pointer hover:bg-stone-50/70'
+                        : activeStep === 3
+                          ? 'border-b border-stone-200'
+                          : 'opacity-65'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
+                          unlockedStep > 3 && activeStep !== 3
+                            ? 'bg-emerald-600 text-white'
+                            : activeStep === 3
+                              ? 'bg-stone-900 text-white'
+                              : 'bg-stone-100 text-stone-500'
+                        }`}
+                      >
+                        {unlockedStep > 3 && activeStep !== 3 ? <Check className="w-3.5 h-3.5" /> : '3'}
+                      </span>
+                      <div>
+                        <h3 className="font-bold text-sm sm:text-base text-stone-950 font-heading">
+                          Piegādes veids
+                        </h3>
+                        {unlockedStep > 3 && activeStep !== 3 && (
+                          <p className="text-xs text-stone-500 mt-0.5">
+                            {selectedDeliveryConfig.title} ·{' '}
+                            <strong className="text-stone-800">
+                              {shippingEur === 0 ? 'Bezmaksas (€0)' : formatPrice(shippingEur)}
+                            </strong>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {unlockedStep >= 3 && activeStep !== 3 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStepError(null);
+                          setActiveStep(3);
+                        }}
+                        className="text-xs font-semibold text-stone-700 hover:text-stone-950 inline-flex items-center gap-1 cursor-pointer shrink-0"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Labot</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {activeStep === 3 && (
+                    <div className="p-5 sm:p-6 space-y-3 text-xs">
+                      {checkoutPayload.type === 'service' ? (
+                        <div className="p-4 rounded-xl border border-stone-900 bg-stone-50 flex items-center justify-between gap-3">
+                          <div>
+                            <div className="font-bold text-stone-950">{selectedDeliveryConfig.title}</div>
+                            <div className="text-[11px] text-stone-500 mt-0.5">{selectedDeliveryConfig.subtitle}</div>
+                          </div>
+                          <span className="font-mono font-bold text-emerald-700 shrink-0">€0</span>
+                        </div>
+                      ) : (
+                        DELIVERY_OPTIONS.map((opt) => {
+                          const cost = getShippingCost(opt.id);
+                          const isSelected = deliveryOptionId === opt.id;
+                          return (
+                            <label
+                              key={opt.id}
+                              onClick={() => setDeliveryOptionId(opt.id)}
+                              className={`flex items-start justify-between gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'border-stone-900 bg-stone-50 ring-1 ring-stone-900/20'
+                                  : 'border-stone-200 hover:bg-stone-50/60'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <input
+                                  type="radio"
+                                  name="deliveryOption"
+                                  checked={isSelected}
+                                  onChange={() => setDeliveryOptionId(opt.id)}
+                                  className="mt-0.5 accent-stone-900"
+                                />
+                                <div>
+                                  <div className="font-bold text-stone-950">{opt.title}</div>
+                                  <div className="text-[11px] text-stone-500 mt-0.5">{opt.subtitle}</div>
+                                  {opt.freeThresholdEur !== null && opt.freeThresholdEur > 0 && cost > 0 && (
+                                    <div className="text-[11px] text-amber-700 mt-0.5">
+                                      Bezmaksas pasūtījumiem no {formatPrice(opt.freeThresholdEur)}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <span
+                                className={`font-mono font-bold shrink-0 tabular-nums ${
+                                  cost === 0 ? 'text-emerald-700' : 'text-stone-950'
+                                }`}
+                              >
+                                {cost === 0 ? 'Bezmaksas (€0)' : formatPrice(cost)}
+                              </span>
+                            </label>
+                          );
+                        })
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleStep3Continue}
+                        className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer font-heading mt-2"
+                      >
+                        Turpināt
+                      </button>
+                    </div>
+                  )}
+                </section>
+
+                {/* STEP 4: Maksājums */}
+                <section className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-xs">
+                  <div
+                    onClick={() => {
+                      if (unlockedStep >= 4 && activeStep !== 4) {
+                        setStepError(null);
+                        setActiveStep(4);
+                      }
+                    }}
+                    className={`px-5 py-4 flex items-center justify-between gap-3 ${
+                      activeStep === 4 ? 'border-b border-stone-200' : unlockedStep < 4 ? 'opacity-65' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
+                          activeStep === 4 ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-500'
+                        }`}
+                      >
+                        4
+                      </span>
+                      <div>
+                        <h3 className="font-bold text-sm sm:text-base text-stone-950 font-heading">Maksājums</h3>
+                        {activeStep !== 4 && (
+                          <p className="text-xs text-stone-500 mt-0.5">
+                            Incredit nomaksa · Bankas karte · Internetbanka · Skaidrā naudā / POS uz vietas
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {activeStep === 4 && (
+                    <form onSubmit={handleSubmitOrder} className="p-5 sm:p-6 space-y-4 text-xs">
+                      <p className="text-stone-600 leading-relaxed">
+                        Izvēlies sev piemērotāko norēķinu veidu — atverot konkrēto sadaļu, redzēsi precīzus nosacījumus un
+                        mēneša maksājumu aprēķinu.
+                      </p>
+
+                      {/* 1. INCREDIT */}
+                      <div
+                        className={`rounded-xl border transition-all overflow-hidden ${
+                          paymentMethod === 'incredit'
+                            ? 'border-emerald-600 ring-1 ring-emerald-500/30'
+                            : 'border-stone-200'
+                        }`}
+                      >
+                        <label
+                          onClick={() => setPaymentMethod('incredit')}
+                          className={`p-4 flex items-center justify-between gap-3 cursor-pointer ${
+                            paymentMethod === 'incredit' ? 'bg-emerald-50/60' : 'bg-white hover:bg-stone-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              checked={paymentMethod === 'incredit'}
+                              onChange={() => setPaymentMethod('incredit')}
+                              className="accent-emerald-700"
+                            />
+                            <div>
+                              <div className="font-bold text-sm text-stone-950">Incredit nomaksa un līzings</div>
+                              <div className="text-[11px] text-stone-600">
+                                Atmaksas termiņš 6–36 mēn. · Pirmā iemaksa no €0 · Parakstīšana ar Smart-ID vai eParaksts
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-mono font-bold text-emerald-700 shrink-0 tabular-nums">
+                            No ~{formatPrice(Math.max(10, Math.round(grandTotalEur / 36)))}/mēn.
+                          </span>
+                        </label>
+
+                        {paymentMethod === 'incredit' && (
+                          <div className="p-4 bg-stone-50 border-t border-stone-200 space-y-4">
+                            <div>
+                              <label className="block font-semibold text-stone-700 mb-1.5">
+                                Izvēlies atmaksas termiņu:
+                              </label>
+                              <div className="grid grid-cols-4 gap-2">
+                                {[6, 12, 24, 36].map((months) => (
+                                  <button
+                                    key={months}
+                                    type="button"
+                                    onClick={() => setLeaseTermMonths(months)}
+                                    className={`py-2 rounded-lg border font-semibold cursor-pointer transition-colors ${
+                                      leaseTermMonths === months
+                                        ? 'border-stone-900 bg-stone-900 text-white'
+                                        : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-100'
+                                    }`}
+                                  >
+                                    {months} mēn.
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                              <div>
+                                <label className="block font-semibold text-stone-700 mb-1">
+                                  Vēlamā pirmā iemaksa (€)
+                                </label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={Math.max(0, grandTotalEur - 30)}
+                                  value={firstPaymentEur}
+                                  onChange={(e) => setFirstPaymentEur(Number(e.target.value) || 0)}
+                                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs font-mono"
+                                />
+                              </div>
+
+                              <div className="bg-white border border-stone-200 rounded-lg p-2.5 flex items-center justify-between">
+                                <div>
+                                  <div className="text-[11px] text-stone-500">
+                                    Finansējamā summa: {formatPrice(financedAmountEur)}
+                                  </div>
+                                  <div className="font-bold text-stone-950">Aptuvenais maksājums:</div>
+                                </div>
+                                <span className="text-base font-mono font-bold text-emerald-700 tabular-nums">
+                                  ~{formatPrice(monthlyIncreditEur)}/mēn.
+                                </span>
+                              </div>
+                            </div>
+
+                            <label className="flex items-center gap-2 pt-2 border-t border-stone-200 cursor-pointer text-stone-800">
+                              <input
+                                type="checkbox"
+                                checked={extraTradeIn}
+                                onChange={(e) => setExtraTradeIn(e.target.checked)}
+                                className="accent-emerald-700"
+                              />
+                              <span className="font-medium">
+                                Vēlos nodot savu veco velosipēdu kā pirmo iemaksu
+                              </span>
+                            </label>
+                            {extraTradeIn && (
+                              <input
+                                type="text"
+                                value={extraTradeInBike}
+                                onChange={(e) => setExtraTradeInBike(e.target.value)}
+                                placeholder="Norādi vecā velosipēda modeli, stāvokli un vēlamo summu..."
+                                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
+                              />
+                            )}
+
+                            <div className="bg-white border border-stone-200 rounded-lg p-3 text-[11px] text-stone-600 space-y-1">
+                              <div className="font-bold text-stone-900">Kā darbojas Incredit nomaksa:</div>
+                              <p>
+                                1. Šeit personas kods nav jāievada. 2. Pēc pasūtījuma apstiprināšanas sagatavosim Incredit
+                                nomaksas pieteikumu — lēmumu saņemsi dažu minūšu laikā. 3. Līgumu parakstīsi attālināti ar
+                                Smart-ID / eParaksts vai klātienē Rindas ielā 44.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 3. BANKAS KARTE */}
+                      <div
+                        className={`rounded-xl border transition-all overflow-hidden ${
+                          paymentMethod === 'card' ? 'border-stone-900 ring-1 ring-stone-900/20' : 'border-stone-200'
+                        }`}
+                      >
+                        <label
+                          onClick={() => setPaymentMethod('card')}
+                          className={`p-4 flex items-center justify-between gap-3 cursor-pointer ${
+                            paymentMethod === 'card' ? 'bg-stone-50' : 'bg-white hover:bg-stone-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              checked={paymentMethod === 'card'}
+                              onChange={() => setPaymentMethod('card')}
+                              className="accent-stone-900"
+                            />
+                            <div>
+                              <div className="font-bold text-sm text-stone-950 flex items-center gap-1.5">
+                                <CreditCard className="w-4 h-4 text-stone-700" />
+                                <span>Bankas karte (Visa / Mastercard)</span>
+                              </div>
+                              <div className="text-[11px] text-stone-500">
+                                Tūlītēja tiešsaistes apmaksa ar debetkarti vai kredītkarti
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-mono font-bold text-stone-950 shrink-0 tabular-nums">
+                            {formatPrice(grandTotalEur)}
+                          </span>
+                        </label>
+
+                        {paymentMethod === 'card' && (
+                          <div className="p-4 bg-stone-50 border-t border-stone-200 space-y-3">
+                            <div>
+                              <label className="block text-stone-700 font-medium mb-1">
+                                Kartes īpašnieka Vārds, Uzvārds *
+                              </label>
+                              <input
+                                type="text"
+                                value={cardName}
+                                onChange={(e) => setCardName(e.target.value)}
+                                placeholder="Vārds Uzvārds"
+                                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-stone-700 font-medium mb-1">Kartes numurs *</label>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={cardNumber}
+                                onChange={(e) => setCardNumber(formatCardNumberInput(e.target.value))}
+                                placeholder="0000 0000 0000 0000"
+                                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs font-mono"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-stone-700 font-medium mb-1">Derīguma termiņš MM/GG *</label>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={cardExpiry}
+                                  onChange={(e) => setCardExpiry(formatExpiryInput(e.target.value))}
+                                  placeholder="MM/GG"
+                                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs font-mono"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-stone-700 font-medium mb-1">CVC drošības kods *</label>
+                                <input
+                                  type="password"
+                                  inputMode="numeric"
+                                  maxLength={4}
+                                  value={cardCvc}
+                                  onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))}
+                                  placeholder="•••"
+                                  className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs font-mono"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 4. INTERNETBANKA */}
+                      <div
+                        className={`rounded-xl border transition-all overflow-hidden ${
+                          paymentMethod === 'banklink'
+                            ? 'border-stone-900 ring-1 ring-stone-900/20'
+                            : 'border-stone-200'
+                        }`}
+                      >
+                        <label
+                          onClick={() => setPaymentMethod('banklink')}
+                          className={`p-4 flex items-center justify-between gap-3 cursor-pointer ${
+                            paymentMethod === 'banklink' ? 'bg-stone-50' : 'bg-white hover:bg-stone-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              checked={paymentMethod === 'banklink'}
+                              onChange={() => setPaymentMethod('banklink')}
+                              className="accent-stone-900"
+                            />
+                            <div>
+                              <div className="font-bold text-sm text-stone-950 flex items-center gap-1.5">
+                                <Building className="w-4 h-4 text-stone-700" />
+                                <span>Internetbanka (BankLink)</span>
+                              </div>
+                              <div className="text-[11px] text-stone-500">
+                                Swedbank · SEB · Citadele · Luminor ar Smart-ID apstiprinājumu
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-mono font-bold text-stone-950 shrink-0 tabular-nums">
+                            {formatPrice(grandTotalEur)}
+                          </span>
+                        </label>
+
+                        {paymentMethod === 'banklink' && (
+                          <div className="p-4 bg-stone-50 border-t border-stone-200 space-y-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {[
+                                { id: 'swedbank', name: 'Swedbank' },
+                                { id: 'seb', name: 'SEB banka' },
+                                { id: 'citadele', name: 'Citadele' },
+                                { id: 'luminor', name: 'Luminor' },
+                              ].map((bank) => (
+                                <button
+                                  key={bank.id}
+                                  type="button"
+                                  onClick={() => setSelectedBank(bank.id as typeof selectedBank)}
+                                  className={`p-2.5 rounded-lg border text-center cursor-pointer transition-colors ${
+                                    selectedBank === bank.id
+                                      ? 'border-stone-900 bg-white font-bold text-stone-950 shadow-xs'
+                                      : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
+                                  }`}
+                                >
+                                  {bank.name}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-stone-500">
+                              Maksājums tiek apstiprināts caur Tavas izvēlētās bankas drošo autentifikāciju (Smart-ID /
+                              kodu kalkulators).
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 5. SKAIDRĀ NAUDĀ VAI AR KARTI UZ VIETAS */}
+                      <div
+                        className={`rounded-xl border transition-all overflow-hidden ${
+                          paymentMethod === 'cash_onsite'
+                            ? 'border-stone-900 ring-1 ring-stone-900/20'
+                            : 'border-stone-200'
+                        }`}
+                      >
+                        <label
+                          onClick={() => setPaymentMethod('cash_onsite')}
+                          className={`p-4 flex items-center justify-between gap-3 cursor-pointer ${
+                            paymentMethod === 'cash_onsite' ? 'bg-amber-50/50' : 'bg-white hover:bg-stone-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              checked={paymentMethod === 'cash_onsite'}
+                              onChange={() => setPaymentMethod('cash_onsite')}
+                              className="accent-stone-900"
+                            />
+                            <div>
+                              <div className="font-bold text-sm text-stone-950 flex items-center gap-1.5">
+                                <Banknote className="w-4 h-4 text-amber-700" />
+                                <span>Maksāt skaidrā naudā vai ar karti uz vietas / piegādē</span>
+                              </div>
+                              <div className="text-[11px] text-stone-500">
+                                Veikalā Rindas ielā 44 vai pie servisa busa šofera saņemšanas brīdī (€0 komisija)
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-mono font-bold text-stone-950 shrink-0 tabular-nums">
+                            {formatPrice(grandTotalEur)}
+                          </span>
+                        </label>
+
+                        {paymentMethod === 'cash_onsite' && (
+                          <div className="p-4 bg-stone-50 border-t border-stone-200 space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                              <button
+                                type="button"
+                                onClick={() => setCashSubMethod('store_cash_card')}
+                                className={`p-3 rounded-lg border text-left cursor-pointer ${
+                                  cashSubMethod === 'store_cash_card'
+                                    ? 'border-stone-900 bg-white font-semibold text-stone-950 shadow-xs'
+                                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
+                                }`}
+                              >
+                                <div className="font-bold">Veikalā Rindas ielā 44</div>
+                                <div className="text-[11px] text-stone-500">
+                                  Skaidrā naudā vai ar karti saņemot velosipēdu Ventspilī
+                                </div>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setCashSubMethod('courier_cash_pos')}
+                                className={`p-3 rounded-lg border text-left cursor-pointer ${
+                                  cashSubMethod === 'courier_cash_pos'
+                                    ? 'border-stone-900 bg-white font-semibold text-stone-950 shadow-xs'
+                                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
+                                }`}
+                              >
+                                <div className="font-bold">Pie VentVelo servisa busa šofera</div>
+                                <div className="text-[11px] text-stone-500">
+                                  Skaidrā naudā vai mobilajā POS terminālī pie durvīm
+                                </div>
+                              </button>
+                            </div>
+
+                            <label className="flex items-center gap-2 pt-2 border-t border-stone-200 cursor-pointer text-stone-800">
+                              <input
+                                type="checkbox"
+                                checked={extraTradeIn}
+                                onChange={(e) => setExtraTradeIn(e.target.checked)}
+                                className="accent-stone-900"
+                              />
+                              <span className="font-medium">
+                                Vēlos nodot veco velosipēdu novērtēšanai un cenas samazināšanai uz vietas
+                              </span>
+                            </label>
+                            {extraTradeIn && (
+                              <input
+                                type="text"
+                                value={extraTradeInBike}
+                                onChange={(e) => setExtraTradeInBike(e.target.value)}
+                                placeholder="Vecā velosipēda marka un apraksts..."
+                                className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
+                              />
+                            )}
+
+                            <p className="text-[11px] text-stone-600 leading-relaxed">
+                              Tiešsaistē šobrīd nekas netiek ieturēts — mēs rezervējam velosipēdu, un samaksu veic
+                              pēc tā apskates un pārbaudes.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isProcessing}
+                        className="w-full py-3.5 px-4 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md font-heading mt-2"
+                      >
+                        <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>{getSubmitButtonLabel()}</span>
+                      </button>
+                    </form>
+                  )}
+                </section>
+              </div>
+            </div>
           )}
         </div>
-
       </div>
     </div>
   );

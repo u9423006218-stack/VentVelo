@@ -53,7 +53,7 @@ export const Header: React.FC = () => {
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>
-                    <strong className="text-amber-300">Inbank un ESTO līzings (0% ESTO 3)</strong> + vecais ritenis kā pirmā iemaksa
+                    <strong className="text-amber-300">Incredit nomaksa (6–36 mēn.)</strong> + vecais ritenis kā pirmā iemaksa
                   </span>
                   <span className="text-amber-500">•</span>
                   <span>

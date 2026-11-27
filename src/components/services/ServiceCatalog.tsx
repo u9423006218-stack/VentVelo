@@ -126,14 +126,14 @@ export const ServiceCatalog: React.FC = () => {
               ))}
           </div>
 
-          {/* Highlighted Inbank, ESTO & Trade-in Strip right under Bike Previews */}
+          {/* Highlighted Incredit & Trade-in Strip right under Bike Previews */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
             <div className="bg-emerald-950/90 border border-emerald-700/70 rounded-xl p-4 flex items-start gap-3">
               <CreditCard className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
               <div className="text-xs space-y-1">
-                <div className="font-bold text-white text-sm">Inbank Līzings · no 6–36 mēn.</div>
+                <div className="font-bold text-white text-sm">Incredit nomaksa · 6–36 mēn.</div>
                 <p className="text-emerald-100/80 leading-relaxed">
-                  Lēmums 2 minūtēs ar Smart-ID. Pirmā iemaksa no €0 vai ar vecā riteņa nodošanu.
+                  Līgums ar Smart-ID vai klātienē Rindas ielā 44. Pirmā iemaksa no €0 vai ar vecā riteņa nodošanu.
                 </p>
               </div>
             </div>
@@ -141,9 +141,9 @@ export const ServiceCatalog: React.FC = () => {
             <div className="bg-amber-500 text-stone-950 rounded-xl p-4 flex items-start gap-3">
               <CreditCard className="w-5 h-5 text-stone-900 shrink-0 mt-0.5" />
               <div className="text-xs space-y-1">
-                <div className="font-bold text-stone-950 text-sm">ESTO 3 (0% likme) un Nomaksa</div>
+                <div className="font-bold text-stone-950 text-sm">Meistara montāža +€35</div>
                 <p className="text-stone-900/90 leading-relaxed">
-                  Sadali cenu 3 daļās bez procentiem (€0 pārmaksa) vai izvēlies ESTO līdz 36 mēnešiem.
+                  Saņem pilnībā noregulētu velosipēdu ar 24 mēnešu darbnīcas garantiju vai pasūti oriģinālajā kastē (€0).
                 </p>
               </div>
             </div>
@@ -153,7 +153,7 @@ export const ServiceCatalog: React.FC = () => {
               <div className="text-xs space-y-1">
                 <div className="font-bold text-white text-sm">Vecais ritenis kā pirmā iemaksa</div>
                 <p className="text-stone-300 leading-relaxed">
-                  Samaini esošo velosipēdu pret jaunu un saņem montāžu ar garantiju tikai par +€35.
+                  Samaini esošo velosipēdu pret jaunu un samazini Incredit nomaksas summu vai pirmo iemaksu.
                 </p>
               </div>
             </div>

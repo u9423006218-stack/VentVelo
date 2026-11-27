@@ -643,7 +643,7 @@ export const BikesShowcase: React.FC = () => {
               <span>18 gadu pieredze kopš 2008. gada</span>
             </div>
             <p className="text-stone-400 leading-relaxed">
-              Nodod savu veco riteni kā pirmo iemaksu par jauno vai sadali maksājumu ar Inbank un ESTO līzingu. Piegāde ar servisa busiņu Ventspilī, Usmā un Talsos.
+              Nodod savu veco riteni kā pirmo iemaksu par jauno vai sadali maksājumu ar Incredit nomaksu. Piegāde ar servisa busiņu Ventspilī, Usmā un Talsos.
             </p>
           </div>
         </div>
@@ -673,10 +673,10 @@ export const BikesShowcase: React.FC = () => {
           <div className="space-y-1">
             <div className="font-bold text-white flex items-center gap-1.5">
               <CreditCard className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Inbank un ESTO līzings</span>
+              <span>Incredit nomaksa</span>
             </div>
             <p className="text-stone-400 leading-relaxed">
-              Ātra nomaksa no 6 līdz 36 mēnešiem vai 3 bezprocentu daļās. Visas cenas norādītas skaidri bez centiem.
+              Ātra nomaksa no 6 līdz 36 mēnešiem ar pirmo iemaksu no €0. Visas cenas norādītas skaidri bez centiem.
             </p>
           </div>
 
@@ -692,29 +692,29 @@ export const BikesShowcase: React.FC = () => {
         </div>
       </div>
 
-      {/* Prominent Inbank & ESTO Leasing Offer Banner */}
+      {/* Prominent Incredit & Trade-in Offer Banner */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-emerald-950 text-white rounded-2xl p-6 border border-emerald-800/80 flex flex-col justify-between gap-4 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
               <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
-                Inbank Līzings · No 6 līdz 36 mēnešiem
+                Incredit Nomaksa · No 6 līdz 36 mēnešiem
               </div>
               <h2 className="text-xl font-bold font-heading text-white">
-                Pērc jaunu riteni ar Inbank no €12 mēnesī
+                Pērc jaunu riteni ar Incredit no €12 mēnesī
               </h2>
               <p className="text-xs text-emerald-100/85 leading-relaxed">
-                Noformē līzingu 2 minūtēs ar Smart-ID vai klātienē Rindas ielā 44. Pirmā iemaksa no €0 vai izmanto savu veco velosipēdu kā pirmo iemaksu!
+                Noformē Incredit nomaksu attālināti ar Smart-ID vai klātienē Rindas ielā 44. Pirmā iemaksa no €0 vai izmanto savu veco velosipēdu kā pirmo iemaksu!
               </p>
             </div>
             <CreditCard className="w-8 h-8 text-emerald-400 shrink-0" />
           </div>
           <div className="flex flex-wrap items-center gap-4 text-[11px] text-emerald-200 pt-2 border-t border-emerald-800/70">
-            <span>Lēmums 2 minūtēs</span>
+            <span>Ātra pieteikuma izskatīšana</span>
             <span>·</span>
             <span>Pirmā iemaksa no €0</span>
             <span>·</span>
-            <span>Bez slēptām komisijām</span>
+            <span>Parakstīšana ar Smart-ID</span>
           </div>
         </div>
 
@@ -722,21 +722,21 @@ export const BikesShowcase: React.FC = () => {
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
               <div className="text-[11px] font-bold uppercase tracking-wider text-stone-900">
-                ESTO 3 un ESTO Nomaksa · 0% Pārmaksa
+                Incredit + Vecā riteņa nodošana
               </div>
               <h2 className="text-xl font-bold font-heading text-stone-950">
-                Sadali cenu 3 daļās bez procentiem (0%)
+                Samaini veco riteni un samazini nomaksas summu
               </h2>
               <p className="text-xs text-stone-900/90 leading-relaxed">
-                Ar <strong>ESTO 3</strong> maksā 3 vienādās daļās bez neviena eiro pārmaksas, vai izvēlies garāku ESTO nomaksu līdz 36 mēnešiem. Apstiprinājums 60 sekundēs.
+                Atved savu esošo velosipēdu uz Rindas ielu 44 vai nodod mūsu servisa busiņam — novērtēsim to 15 minūtēs un ieskaitīsim kā pirmo iemaksu Incredit līgumā.
               </p>
             </div>
             <Award className="w-8 h-8 text-stone-900 shrink-0" />
           </div>
           <div className="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-stone-900 pt-2 border-t border-stone-950/15">
-            <span>ESTO 3: 0% likme</span>
+            <span>Novērtēšana uz vietas</span>
             <span>·</span>
-            <span>Apstiprinājums 60 sek.</span>
+            <span>Mazāks mēneša maksājums</span>
             <span>·</span>
             <span>Der arī ar +€35 montāžu</span>
           </div>
@@ -965,7 +965,7 @@ export const BikesShowcase: React.FC = () => {
                               )}
                             </div>
                             <div className="text-[11px] text-stone-500 mt-0.5 tabular-nums">
-                              Inbank / ESTO no <strong className="text-stone-800">{formatPrice(monthlyEstimate(bike.priceEur))}/mēn.</strong>
+                              Incredit no <strong className="text-stone-800">{formatPrice(monthlyEstimate(bike.priceEur))}/mēn.</strong>
                             </div>
                           </div>
 
@@ -975,15 +975,9 @@ export const BikesShowcase: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-1.5 text-[11px] pt-1">
-                          <div className="bg-emerald-50 border border-emerald-200/80 text-emerald-950 px-2.5 py-1.5 rounded-lg tabular-nums">
-                            <span className="font-bold block">Inbank</span>
-                            <span>no {formatPrice(monthlyEstimate(bike.priceEur))}/mēn.</span>
-                          </div>
-                          <div className="bg-amber-50 border border-amber-200/80 text-amber-950 px-2.5 py-1.5 rounded-lg tabular-nums">
-                            <span className="font-bold block">ESTO 3 (0%)</span>
-                            <span>3 × {formatPrice(Math.round(bike.priceEur / 3))}</span>
-                          </div>
+                        <div className="bg-emerald-50 border border-emerald-200/80 text-emerald-950 px-3 py-1.5 rounded-lg text-[11px] flex items-center justify-between tabular-nums">
+                          <span className="font-bold">Incredit nomaksa</span>
+                          <span>no {formatPrice(monthlyEstimate(bike.priceEur))}/mēn. · €0 pirmā iemaksa</span>
                         </div>
 
                         <div className="text-[11px] text-stone-500 bg-stone-50 px-2.5 py-1.5 rounded-lg border border-stone-100">
@@ -1174,7 +1168,7 @@ export const BikesShowcase: React.FC = () => {
                         </span>
                       )}
                       <span className="text-xs text-stone-600 tabular-nums">
-                        ar PVN · Inbank / ESTO no{' '}
+                        ar PVN · Incredit nomaksa no{' '}
                         <strong>{formatPrice(monthlyEstimate(getFinalPrice(selectedBike)))}/mēn.</strong>
                       </span>
                     </div>
@@ -1383,27 +1377,22 @@ export const BikesShowcase: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h4 className="font-bold text-white text-sm font-heading flex items-center gap-1.5">
                       <CreditCard className="w-4 h-4 text-amber-400" />
-                      <span>Inbank un ESTO Līzinga piedāvājums</span>
+                      <span>Incredit Nomaksas piedāvājums</span>
                     </h4>
                   </div>
-                  <div className="grid grid-cols-2 gap-2.5 text-xs">
-                    <div className="bg-emerald-900/70 border border-emerald-700/70 rounded-lg p-2.5">
-                      <div className="font-bold text-emerald-200">Inbank līzings</div>
-                      <div className="text-base font-bold font-mono text-white tabular-nums mt-0.5">
-                        no {formatPrice(monthlyEstimate(getFinalPrice(selectedBike)))} / mēn.
+                  <div className="bg-emerald-900/70 border border-emerald-700/70 rounded-lg p-3 flex items-center justify-between text-xs">
+                    <div>
+                      <div className="font-bold text-emerald-200">Incredit nomaksa (6–36 mēn.)</div>
+                      <div className="text-[11px] text-emerald-200/80 mt-0.5">
+                        €0 pirmā iemaksa vai vecais velosipēds pirmajai iemaksai
                       </div>
-                      <div className="text-[11px] text-emerald-200/80 mt-0.5">6–36 mēn., €0 pirmā iemaksa</div>
                     </div>
-                    <div className="bg-amber-500 text-stone-950 rounded-lg p-2.5">
-                      <div className="font-bold">ESTO 3 (0% likme)</div>
-                      <div className="text-base font-bold font-mono tabular-nums mt-0.5">
-                        3 × {formatPrice(Math.round(getFinalPrice(selectedBike) / 3))}
-                      </div>
-                      <div className="text-[11px] font-medium mt-0.5">Bez procentiem un pārmaksas</div>
+                    <div className="text-base font-bold font-mono text-white tabular-nums shrink-0">
+                      no {formatPrice(monthlyEstimate(getFinalPrice(selectedBike)))} / mēn.
                     </div>
                   </div>
                   <p className="text-[11px] text-emerald-100/85 leading-relaxed">
-                    Nākamajā solī vari izvēlēties Inbank vai ESTO un apvienot ar vecā velosipēda nodošanu pirmajai iemaksai. VentVelo — 18 gadi pieredzes Ventspilī!
+                    Nākamajā solī vari izvēlēties Incredit nomaksu un apvienot ar vecā velosipēda nodošanu pirmajai iemaksai. VentVelo — 18 gadi pieredzes Ventspilī!
                   </p>
                 </div>
               </div>

@@ -18,7 +18,7 @@ const BRAND_DEFAULT_DESC: Record<string, string> = {
 
 const DEFAULT_FEATURES = [
   'Pasūti kastē pašmontāžai (€0, bez garantijas) vai par +€35 saņem pilnībā meistara saliktu ar garantiju',
-  'Pieejams ar vecā velosipēda nodošanu kā pirmo iemaksu un Inbank / ESTO nomaksu',
+  'Pieejams ar vecā velosipēda nodošanu kā pirmo iemaksu un Incredit nomaksu',
 ];
 
 export type CompactBikeTuple = [

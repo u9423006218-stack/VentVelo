@@ -28,7 +28,7 @@ export const SupportChat: React.FC = () => {
       quickReplies: [
         'Kaste €0 vai salikts €35?',
         'Vecais ritenis kā pirmā iemaksa',
-        'Inbank un ESTO līzings',
+        'Incredit nomaksa',
         'Kā darbojas servisa busiņš?',
       ],
     },
@@ -84,20 +84,20 @@ export const SupportChat: React.FC = () => {
     if (q.includes('kast') || q.includes('salik') || q.includes('mont') || q.includes('35')) {
       return {
         text: 'Piedāvājam divus velosipēda saņemšanas veidus:\n1. Oriģinālajā iepakojumā (kastē) par €0 – pašam jāsamontē un jānoregulē, taču šajā variantā bez darbnīcas garantijas.\n2. Meistara pilnībā salikts un noregulēts par €35 – ar oficiālu 24 mēnešu garantiju, bremžu un pārslēdzēju pārbaudi, kā arī piegādi ar mūsu busiņu vai gatavu saņemšanai Rindas ielā 44!',
-        quickReplies: ['Skatīt velosipēdus', 'Inbank un ESTO līzings'],
+        quickReplies: ['Skatīt velosipēdus', 'Incredit nomaksa'],
       };
     }
 
     if (q.includes('vec') || q.includes('iemaks') || q.includes('maiņ') || q.includes('novērt')) {
       return {
-        text: 'Jā! Savu veco velosipēdu vari atdot mums kā pirmo iemaksu jaunā riteņa iegādei. Rindas ielā 44 novērtēsim tā stāvokli 15 minūšu laikā un uzreiz samazināsim jaunā Raymon, Unibike, Romet, Tabou vai Ecobike riteņa cenu vai pirmo iemaksu līzingā.',
-        quickReplies: ['Skatīt velosipēdus', 'Inbank un ESTO līzings'],
+        text: 'Jā! Savu veco velosipēdu vari atdot mums kā pirmo iemaksu jaunā riteņa iegādei. Rindas ielā 44 novērtēsim tā stāvokli 15 minūšu laikā un uzreiz samazināsim jaunā Raymon, Unibike, Romet, Tabou vai Ecobike riteņa cenu vai pirmo iemaksu Incredit nomaksā.',
+        quickReplies: ['Skatīt velosipēdus', 'Incredit nomaksa'],
       };
     }
 
-    if (q.includes('inbank') || q.includes('esto') || q.includes('līzing') || q.includes('nomaks')) {
+    if (q.includes('incredit') || q.includes('līzing') || q.includes('nomaks')) {
       return {
-        text: 'Visus jaunos velosipēdus (kalnu MTB, gravel, pilsētas un bērnu) vari iegādāties ar ērtu Inbank vai ESTO līzingu:\n• ESTO 3 – sadali maksājumu 3 daļās bez procentiem (€0 pārmaksa).\n• Inbank un ESTO nomaksa no 6 līdz 36 mēnešiem.\nPlus – vari izmantot arī veco riteni kā pirmo iemaksu!',
+        text: 'Visus jaunos velosipēdus (kalnu MTB, gravel, pilsētas un bērnu) vari iegādāties ar ērtu Incredit nomaksu:\n• Atmaksas termiņš no 6 līdz 36 mēnešiem, pirmā iemaksa no €0.\n• Līguma parakstīšana attālināti ar Smart-ID / eParaksts vai klātienē Rindas ielā 44.\nPlus – vari izmantot arī veco riteni kā pirmo iemaksu!',
         quickReplies: ['Skatīt velosipēdus', 'Vecais ritenis kā pirmā iemaksa'],
       };
     }
@@ -145,7 +145,7 @@ export const SupportChat: React.FC = () => {
     }
 
     return {
-      text: 'Paldies par jautājumu! VentVelo darbojas jau 18 gadus Ventspilī, Rindas ielā 44. Piedāvājam jaunus velosipēdus ar Inbank un ESTO līzingu, velosipēdu nomu un pilnu servisu ar busiņu Kurzemē. Saziņai ar meistaru Raivi raksti mums arī tieši WhatsApp!',
+      text: 'Paldies par jautājumu! VentVelo darbojas jau 18 gadus Ventspilī, Rindas ielā 44. Piedāvājam jaunus velosipēdus ar Incredit nomaksu, velosipēdu nomu un pilnu servisu ar busiņu Kurzemē. Saziņai ar meistaru Raivi raksti mums arī tieši WhatsApp!',
       quickReplies: ['Kaste €0 vai salikts €35?', 'Velosipēdi pārdošanā', 'Velosipēdu noma'],
     };
   };

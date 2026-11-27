@@ -470,8 +470,14 @@ export const UserDashboard: React.FC = () => {
                     <span className="text-xs text-stone-500">{order.createdAt}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded">
-                      APMAKSĀTS ({order.paymentMethod})
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-0.5 rounded border ${
+                        order.paymentStatus === 'pending'
+                          ? 'text-amber-800 bg-amber-50 border-amber-200'
+                          : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                      }`}
+                    >
+                      {order.paymentStatus === 'pending' ? 'PASŪTĪTS' : 'APMAKSĀTS'} ({order.paymentMethod})
                     </span>
                   </div>
                 </div>
@@ -496,7 +502,7 @@ export const UserDashboard: React.FC = () => {
                     Piegāde: <strong className="text-stone-800">{order.deliveryMethod === 'van_delivery' ? 'Piegāde ar servisa busiņu' : 'Saņemšana darbnīcā'}</strong>
                   </div>
                   <div className="text-sm font-bold text-stone-950 font-mono tabular-nums">
-                    Kopā apmaksāts: {formatPrice(order.totalEur)}
+                    {order.paymentStatus === 'pending' ? 'Kopā pasūtījums:' : 'Kopā apmaksāts:'} {formatPrice(order.totalEur)}
                   </div>
                 </div>
               </div>
