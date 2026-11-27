@@ -413,7 +413,7 @@ export const INITIAL_USER_GARAGE_BIKES: UserBike[] = [
     brand: 'Trek',
     model: 'FX 3 Disc',
     year: 2023,
-    serialNumber: 'WTU28194481M',
+    serialNumber: 'VV-PARAUGS-01',
     type: 'Pilsētas un tūrisma velosipēds',
     purchaseDate: '2023-05-14',
     lastServiceDate: '2026-04-12',
@@ -425,7 +425,7 @@ export const INITIAL_USER_GARAGE_BIKES: UserBike[] = [
     brand: 'Canyon',
     model: 'Grizl 7 1by',
     year: 2024,
-    serialNumber: 'CYN-GZ-89104',
+    serialNumber: 'VV-PARAUGS-02',
     type: 'Grants (Gravel) piedzīvojumu velosipēds',
     purchaseDate: '2024-03-20',
     lastServiceDate: '2026-09-02',
@@ -438,22 +438,22 @@ export const INITIAL_MAINTENANCE_JOBS: MaintenanceJob[] = [
   {
     id: 'job_sample_1',
     trackingCode: 'VV-8492-LV',
-    customerName: 'Līna Damberga',
-    customerPhone: '+371 29112233',
-    customerEmail: 'lina.damberga@vatp.lv',
-    bikeModel: 'Trek FX 3 Disc (Dark Aquatic tonējums)',
-    bikeSerial: 'WTU28194481M',
+    customerName: 'Demo klients',
+    customerPhone: '',
+    customerEmail: 'klienti@ventvelo.lv',
+    bikeModel: 'Trek FX 3 Disc (Paraugs)',
+    bikeSerial: 'VV-PARAUGS-01',
     servicePackage: SERVICE_PACKAGES[1],
     customRepairs: [CUSTOM_REPAIR_ITEMS[0]],
     deliveryType: 'van_pickup',
     pickupLocation: {
       region: 'Ventspils',
-      address: 'Inženieru iela 101, Ventspils Augsto tehnoloģiju parks (VATP)',
+      address: 'Ventspils pilsētas centrs (Paraugs)',
       city: 'Ventspils',
       postalCode: 'LV-3601',
       preferredDate: '2026-11-12',
       preferredTimeSlot: '10:00 – 12:00',
-      notes: 'Lūdzu piezvaniet pie galvenās ieejas barjeras. Busiņš pieteikts pieņemšanai.',
+      notes: 'Parauga ieraksts remonta izsekošanas demonstrācijai.',
       feeEur: 8,
     },
     status: 'in_progress',
@@ -466,7 +466,7 @@ export const INITIAL_MAINTENANCE_JOBS: MaintenanceJob[] = [
       {
         status: 'van_en_route',
         timestamp: '2026-11-10 10:30',
-        note: 'VentVelo servisa busiņš savāca velosipēdu no VATP Ventspilī un droši nogādāja Rindas ielas 44 darbnīcā.',
+        note: 'VentVelo servisa busiņš savāca velosipēdu Ventspilī un droši nogādāja Rindas ielas 44 darbnīcā.',
       },
       {
         status: 'diagnostics',
@@ -481,7 +481,7 @@ export const INITIAL_MAINTENANCE_JOBS: MaintenanceJob[] = [
     ],
     totalPriceEur: 59 + 15 + 8,
     paid: true,
-    paymentMethod: 'Swedbank BankLink (256-bitu SSL šifrēts)',
+    paymentMethod: 'Tiešsaistes apmaksa (Paraugs)',
     currencyUsed: 'EUR',
     guaranteeExpiresAt: '2027-05-10',
     mechanicName: 'Raivis (Galvenais meistars, VentVelo)',
@@ -489,54 +489,13 @@ export const INITIAL_MAINTENANCE_JOBS: MaintenanceJob[] = [
   },
 ];
 
-export const INITIAL_ORDERS: OrderRecord[] = [
-  {
-    id: 'ord_1082',
-    orderNumber: 'VV-ORD-1082',
-    createdAt: '2026-11-05 14:20',
-    items: [
-      {
-        id: 'ci_1',
-        type: 'accessory',
-        productId: 'acc_mucoff_kit',
-        name: 'Muc-Off Drivetrain Degreaser un C3 Ceramic Dry Lube 120ml komplekts',
-        priceEur: 25,
-        quantity: 1,
-      },
-      {
-        id: 'ci_2',
-        type: 'accessory',
-        productId: 'acc_lezyne_pump',
-        name: 'Lezyne CNC Pocket Drive augsta spiediena rokas pumpis',
-        priceEur: 32,
-        quantity: 1,
-      },
-    ],
-    subtotalEur: 57,
-    shippingEur: 0,
-    totalEur: 57,
-    currency: 'EUR',
-    customer: {
-      name: 'Līna Damberga',
-      email: 'lina.damberga@vatp.lv',
-      phone: '+371 29112233',
-      address: 'Inženieru iela 101',
-      city: 'Ventspils',
-      region: 'Ventspils',
-    },
-    deliveryMethod: 'van_delivery',
-    paymentStatus: 'paid',
-    paymentMethod: 'Bankas karte (Visa beidzas ar 4129)',
-    trackingCode: 'VV-TRK-7712',
-    guaranteeCertificates: [],
-  },
-];
+export const INITIAL_ORDERS: OrderRecord[] = [];
 
 export const INITIAL_NOTIFICATIONS: EmailNotification[] = [
   {
     id: 'em_1',
-    recipientEmail: 'lina.damberga@vatp.lv',
-    recipientName: 'Līna Damberga',
+    recipientEmail: 'klienti@ventvelo.lv',
+    recipientName: 'VentVelo Klients',
     subject: 'Serviss apstiprināts: Izbraukuma buss Ventspilī [VV-8492-LV]',
     previewText: 'Jūsu velosipēda apkope ir pieteikta. VentVelo servisa busiņš savāks velosipēdu norādītajā laikā.',
     category: 'service_booking',
@@ -550,7 +509,7 @@ export const INITIAL_NOTIFICATIONS: EmailNotification[] = [
           <p style="margin: 4px 0 0; font-size: 13px; color: #a8a29e;">Rindas iela 44, Ventspils (Pārventa)</p>
         </div>
         <div style="padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
-          <h3 style="margin-top: 0; color: #0c0a09;">Labdien, Līna! Jūsu servisa pieteikums ir pieņemts.</h3>
+          <h3 style="margin-top: 0; color: #0c0a09;">Labdien! Jūsu servisa pieteikums ir pieņemts.</h3>
           <p>Paldies, ka izvēlējāties VentVelo. Mūsu servisa busiņš ieradīsies pakaļ velosipēdam <strong>Trek FX 3 Disc</strong>, lai veiktu pilnvērtīgu tehnisko apkopi.</p>
           
           <div style="background: #fafaf9; border-radius: 6px; padding: 16px; margin: 20px 0; border: 1px solid #e7e5e4;">
@@ -559,21 +518,21 @@ export const INITIAL_NOTIFICATIONS: EmailNotification[] = [
               <li><strong>Izsekošanas numurs:</strong> VV-8492-LV</li>
               <li><strong>Izvēlētā apkope:</strong> Standarta pilnā apkope (€59)</li>
               <li><strong>Papildu darbi:</strong> Rata centrēšana un taisnošana (€15)</li>
-              <li><strong>Savākšanas vieta:</strong> Inženieru iela 101, Ventspils (VATP)</li>
+              <li><strong>Savākšanas vieta:</strong> Ventspils (Servisa busa izbraukums)</li>
               <li><strong>Busiņa laiks:</strong> 10:00 – 12:00</li>
               <li><strong>Garantija:</strong> 6 mēnešu oficiālā VentVelo darbnīcas garantija visiem darbiem</li>
             </ul>
           </div>
           <p style="font-size: 14px;">Jūs jebkurā brīdī varat sekot līdzi meistara darba gaitai savā tiešsaistes VentVelo Garāžas profilā ar kodu <strong>VV-8492-LV</strong>.</p>
-          <p style="font-size: 13px; color: #78716c; margin-top: 24px;">Jautājumu gadījumā zvaniet meistaram tieši uz darbnīcu: +371 27583888 vai atbildiet uz šo e-pastu.</p>
+          <p style="font-size: 13px; color: #78716c; margin-top: 24px;">Jautājumu gadījumā zvaniet meistaram tieši uz darbnīcu: +371 27583888 vai rakstiet uz melnakmens@gmail.com.</p>
         </div>
       </div>
     `,
   },
   {
     id: 'em_2',
-    recipientEmail: 'lina.damberga@vatp.lv',
-    recipientName: 'Līna Damberga',
+    recipientEmail: 'klienti@ventvelo.lv',
+    recipientName: 'VentVelo Klients',
     subject: 'Remonta statuss: Notiek darbi pie Trek FX 3 Disc [VV-8492-LV]',
     previewText: 'Diagnostika pabeigta. Meistars Raivis sācis piedziņas ultraskaņas mazgāšanu un ratu taisnošanu.',
     category: 'status_update',
@@ -588,7 +547,7 @@ export const INITIAL_NOTIFICATIONS: EmailNotification[] = [
         </div>
         <div style="padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
           <h3 style="margin-top: 0; color: #0c0a09;">Pašreizējais statuss: Notiek remonta darbi darbnīcā</h3>
-          <p>Sveiki, Līna! Meistars <strong>Raivis</strong> ir uzlicis velosipēdu uz darba statīva mūsu Rindas ielas 44 darbnīcā.</p>
+          <p>Sveiki! Meistars <strong>Raivis</strong> ir uzlicis velosipēdu uz darba statīva mūsu Rindas ielas 44 darbnīcā.</p>
           
           <div style="border-left: 3px solid #f59e0b; padding-left: 12px; margin: 16px 0; background: #fffbeb; padding: 12px;">
             <p style="margin: 0; font-size: 14px; color: #292524;">

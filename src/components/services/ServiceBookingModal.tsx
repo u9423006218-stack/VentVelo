@@ -48,9 +48,9 @@ export const ServiceBookingModal: React.FC = () => {
   const [workshopBranch, setWorkshopBranch] = useState<'Rindas iela 44'>('Rindas iela 44');
 
   // Client and Bike Info
-  const [customerName, setCustomerName] = useState('Līna Damberga');
-  const [customerEmail, setCustomerEmail] = useState('lina.damberga@vatp.lv');
-  const [customerPhone, setCustomerPhone] = useState('+371 29112233');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [bikeBrandModel, setBikeBrandModel] = useState('');
   const [bikeSerial, setBikeSerial] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
@@ -402,7 +402,7 @@ export const ServiceBookingModal: React.FC = () => {
                         type="text"
                         value={vanAddress}
                         onChange={(e) => setVanAddress(e.target.value)}
-                        placeholder="piem., Inženieru iela 101, vai Usmas kempings"
+                        placeholder="piem., Lielais prospekts 10, vai Usmas kempings"
                         className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:border-stone-900"
                         required
                       />
@@ -522,7 +522,7 @@ export const ServiceBookingModal: React.FC = () => {
                     type="text"
                     value={bikeSerial}
                     onChange={(e) => setBikeSerial(e.target.value)}
-                    placeholder="piem., WTU28194481M"
+                    placeholder="piem., VV-000000"
                     className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:border-stone-900"
                   />
                 </div>
@@ -548,6 +548,7 @@ export const ServiceBookingModal: React.FC = () => {
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Vārds Uzvārds"
                       className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:border-stone-900"
                       required
                     />
@@ -558,6 +559,7 @@ export const ServiceBookingModal: React.FC = () => {
                       type="email"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
+                      placeholder="vards@epasts.lv"
                       className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:border-stone-900"
                       required
                     />
@@ -568,6 +570,7 @@ export const ServiceBookingModal: React.FC = () => {
                       type="tel"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="+371 2XXXXXXX"
                       className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:border-stone-900"
                       required
                     />
@@ -690,9 +693,6 @@ export const ServiceBookingModal: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                if (step === 2 && deliveryType === 'van_pickup' && !vanAddress) {
-                  setVanAddress('Inženieru iela 101');
-                }
                 setStep((s) => (s + 1) as any);
               }}
               className="px-5 py-2.5 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-sm"

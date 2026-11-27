@@ -37,16 +37,16 @@ export const PaymentGatewayModal: React.FC = () => {
   const [extraTradeInBike, setExtraTradeInBike] = useState<string>('');
   
   // Card inputs
-  const [cardNumber, setCardNumber] = useState('4532 •••• •••• 8821');
-  const [cardExpiry, setCardExpiry] = useState('08/28');
-  const [cardCvc, setCardCvc] = useState('742');
-  const [cardName, setCardName] = useState('Līna Damberga');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
+  const [cardName, setCardName] = useState('');
 
   // Customer inputs
-  const [customerName, setCustomerName] = useState('Līna Damberga');
-  const [customerEmail, setCustomerEmail] = useState('lina.damberga@vatp.lv');
-  const [customerPhone, setCustomerPhone] = useState('+371 29112233');
-  const [shippingAddress, setShippingAddress] = useState('Inženieru iela 101, Ventspils');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [shippingAddress, setShippingAddress] = useState('');
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -99,9 +99,10 @@ export const PaymentGatewayModal: React.FC = () => {
                 quantity: 1,
               }];
 
+      const digitsOnly = cardNumber.replace(/\D/g, '');
       const resolvedMethod =
         paymentMethod === 'card'
-          ? `Bankas karte (Visa ...${cardNumber.slice(-4)})`
+          ? (digitsOnly.length >= 4 ? `Bankas karte (••• ${digitsOnly.slice(-4)})` : 'Bankas karte')
           : paymentMethod === 'banklink'
             ? `${selectedBank.toUpperCase()} BankLink`
             : paymentMethod === 'inbank'
@@ -127,10 +128,10 @@ export const PaymentGatewayModal: React.FC = () => {
         totalEur,
         currency,
         customer: {
-          name: customerName,
-          email: customerEmail,
-          phone: customerPhone,
-          address: shippingAddress,
+          name: customerName.trim() || cardName.trim() || 'Klients',
+          email: customerEmail.trim(),
+          phone: customerPhone.trim(),
+          address: shippingAddress.trim() || 'Saņemšana Rindas ielā 44 / vienojoties',
           city: 'Ventspils',
         },
         deliveryMethod: 'van_delivery',
@@ -154,10 +155,11 @@ export const PaymentGatewayModal: React.FC = () => {
       addOrder(order);
 
       // Automated email notification in natural Latvian
+      const resolvedCustomerName = customerName.trim() || cardName.trim() || 'Klients';
       const email: EmailNotification = {
         id: `em_${Date.now()}`,
-        recipientEmail: customerEmail,
-        recipientName: customerName,
+        recipientEmail: customerEmail.trim() || 'klienti@ventvelo.lv',
+        recipientName: resolvedCustomerName,
         subject: `Maksājuma čeks un pasūtījums apstiprināts [${orderNum}]`,
         previewText: `Paldies par apmaksu ${formatPrice(totalEur)} apmērā! Pasūtījums ir apstiprināts.`,
         category: 'order_confirmation',
@@ -171,7 +173,7 @@ export const PaymentGatewayModal: React.FC = () => {
               <p style="margin: 4px 0 0; font-size: 13px; color: #a8a29e;">Rēķina nr.: ${orderNum}</p>
             </div>
             <div style="padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; background: #ffffff;">
-              <p>Labdien, ${customerName}! Esam veiksmīgi saņēmuši Jūsu maksājumu <strong>${formatPrice(totalEur)}</strong> apmērā caur drošo 256-bitu šifrēto kanālu.</p>
+              <p>Labdien${resolvedCustomerName !== 'Klients' ? `, ${resolvedCustomerName}` : ''}! Esam veiksmīgi saņēmuši Jūsu maksājumu <strong>${formatPrice(totalEur)}</strong> apmērā caur drošo 256-bitu šifrēto kanālu.</p>
               
               <div style="background: #fafaf9; border-radius: 6px; padding: 16px; margin: 20px 0; border: 1px solid #e7e5e4;">
                 <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #78716c;">DARĪJUMA INFORMĀCIJA</p>
@@ -234,7 +236,7 @@ export const PaymentGatewayModal: React.FC = () => {
                 Maksājums autorizēts un apstiprināts!
               </h3>
               <p className="text-xs sm:text-sm text-stone-600 max-w-md mx-auto leading-relaxed">
-                Paldies, {customerName}! Jūsu pasūtījums <strong className="text-stone-900 font-mono">#{confirmedOrderNumber}</strong> ir veiksmīgi reģistrēts. Automātisks apstiprinājuma e-pasts ar kvīti ir nosūtīts.
+                Paldies{(customerName || cardName) ? `, ${customerName || cardName}` : ''}! Jūsu pasūtījums <strong className="text-stone-900 font-mono">#{confirmedOrderNumber}</strong> ir veiksmīgi reģistrēts. Automātisks apstiprinājuma paziņojums ir sagatavots.
               </p>
               
               <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs max-w-md mx-auto space-y-2 text-left">
@@ -385,6 +387,7 @@ export const PaymentGatewayModal: React.FC = () => {
                       type="text"
                       value={cardName}
                       onChange={(e) => setCardName(e.target.value)}
+                      placeholder="Vārds Uzvārds"
                       className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs"
                       required
                     />
@@ -395,7 +398,7 @@ export const PaymentGatewayModal: React.FC = () => {
                       type="text"
                       value={cardNumber}
                       onChange={(e) => setCardNumber(e.target.value)}
-                      placeholder="4532 •••• •••• ••••"
+                      placeholder="0000 0000 0000 0000"
                       className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-xs font-mono"
                       required
                     />

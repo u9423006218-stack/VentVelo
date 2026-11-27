@@ -564,7 +564,7 @@ export const UserDashboard: React.FC = () => {
                   type="text"
                   value={newSerial}
                   onChange={(e) => setNewSerial(e.target.value)}
-                  placeholder="piem., WTU28194481M"
+                  placeholder="piem., VV-000000"
                   className="w-full px-3 py-2 border border-stone-300 rounded-lg"
                 />
               </div>
