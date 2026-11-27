@@ -1,3 +1,18 @@
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+import type { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
+
+let pdfFontsInitialized = false;
+
+function ensurePdfFonts(): void {
+  if (pdfFontsInitialized) return;
+  const fontMap = (pdfFonts as { pdfMake?: { vfs?: Record<string, string> } })?.pdfMake?.vfs || pdfFonts;
+  if (typeof pdfMake.addVirtualFileSystem === 'function') {
+    pdfMake.addVirtualFileSystem(fontMap as Record<string, string>);
+  }
+  pdfFontsInitialized = true;
+}
+
 export interface InvoiceItemInput {
   name: string;
   details?: string;
@@ -42,6 +57,252 @@ function escapeHtml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function buildPdfDocDefinition(payload: InvoiceDispatchPayload): TDocumentDefinitions {
+  const itemRows: Content[][] = [
+    [
+      { text: 'Prece / Pakalpojums', style: 'tableHeader' },
+      { text: 'Daudz.', style: 'tableHeader', alignment: 'center' },
+      { text: 'Cena', style: 'tableHeader', alignment: 'right' },
+      { text: 'Summa', style: 'tableHeader', alignment: 'right' },
+    ],
+    ...payload.items.map((item): Content[] => {
+      const itemStack: Content[] = [
+        { text: item.name, bold: true, fontSize: 10, color: '#1c1917' },
+      ];
+      if (item.details) {
+        itemStack.push({
+          text: item.details,
+          fontSize: 8.5,
+          color: '#57534e',
+          margin: [0, 2, 0, 0],
+        });
+      }
+
+      return [
+        { stack: itemStack },
+        { text: String(item.quantity), alignment: 'center', fontSize: 10, color: '#292524' },
+        { text: item.unitPriceFormatted, alignment: 'right', fontSize: 10, color: '#44403c' },
+        { text: item.lineTotalFormatted, alignment: 'right', bold: true, fontSize: 10, color: '#1c1917' },
+      ];
+    }),
+  ];
+
+  const summaryRows: Content[][] = [
+    [
+      { text: 'Starpsumma:', fontSize: 10, color: '#57534e' },
+      { text: payload.subtotalFormatted, fontSize: 10, bold: true, alignment: 'right', color: '#1c1917' },
+    ],
+  ];
+
+  if (payload.discountFormatted) {
+    summaryRows.push([
+      { text: 'Atlaide:', fontSize: 10, color: '#047857' },
+      { text: `-${payload.discountFormatted}`, fontSize: 10, bold: true, alignment: 'right', color: '#047857' },
+    ]);
+  }
+
+  summaryRows.push([
+    { text: 'Piegāde:', fontSize: 10, color: '#57534e' },
+    { text: payload.shippingFormatted, fontSize: 10, bold: true, alignment: 'right', color: '#1c1917' },
+  ]);
+
+  summaryRows.push([
+    { text: 'Kopā apmaksai (ar PVN):', fontSize: 12, bold: true, color: '#0c0a09', margin: [0, 4, 0, 0] },
+    { text: payload.totalFormatted, fontSize: 13, bold: true, alignment: 'right', color: '#0c0a09', margin: [0, 4, 0, 0] },
+  ]);
+
+  const content: Content[] = [
+    {
+      table: {
+        widths: ['*', 'auto'],
+        body: [
+          [
+            {
+              stack: [
+                {
+                  text: [
+                    { text: 'Vent', color: '#f59e0b', bold: true },
+                    { text: 'Velo', color: '#ffffff', bold: true },
+                  ],
+                  fontSize: 22,
+                },
+                {
+                  text: 'SIA VentVelo · Velosipēdu darbnīca un salons',
+                  fontSize: 9.5,
+                  color: '#d6d3d1',
+                  margin: [0, 3, 0, 0],
+                },
+                {
+                  text: 'Rindas iela 44, Ventspils, LV-3602 · Tālr. +371 27 304 027 · ventspilsvelo@gmail.com',
+                  fontSize: 8.5,
+                  color: '#a8a29e',
+                  margin: [0, 2, 0, 0],
+                },
+              ],
+              fillColor: '#1c1917',
+              margin: [14, 14, 14, 14],
+            },
+            {
+              stack: [
+                {
+                  text: payload.kind === 'service' ? 'SERVISA RĒĶINS / TĀME' : 'ELEKTRONISKAIS RĒĶINS',
+                  fontSize: 9,
+                  bold: true,
+                  color: '#fbbf24',
+                  alignment: 'right',
+                },
+                {
+                  text: `#${payload.orderNumber}`,
+                  fontSize: 16,
+                  bold: true,
+                  color: '#ffffff',
+                  alignment: 'right',
+                  margin: [0, 4, 0, 0],
+                },
+                {
+                  text: `Datums: ${payload.createdAt}`,
+                  fontSize: 9,
+                  color: '#d6d3d1',
+                  alignment: 'right',
+                  margin: [0, 4, 0, 0],
+                },
+              ],
+              fillColor: '#1c1917',
+              margin: [14, 14, 14, 14],
+            },
+          ],
+        ],
+      },
+      layout: 'noBorders',
+      margin: [0, 0, 0, 18],
+    },
+    {
+      columns: [
+        {
+          width: '*',
+          stack: [
+            { text: 'SAŅĒMĒJS / KLIENTS', fontSize: 8.5, bold: true, color: '#78716c', margin: [0, 0, 0, 4] },
+            { text: payload.customerName, bold: true, fontSize: 11 },
+            { text: `E-pasts: ${payload.customerEmail || 'Nav norādīts'}`, fontSize: 9.5, color: '#44403c', margin: [0, 2, 0, 0] },
+            { text: `Tālrunis: ${payload.customerPhone || 'Nav norādīts'}`, fontSize: 9.5, color: '#44403c', margin: [0, 2, 0, 0] },
+          ],
+        },
+        {
+          width: '*',
+          stack: [
+            { text: 'PIEGĀDE UN APMAKSA', fontSize: 8.5, bold: true, color: '#78716c', margin: [0, 0, 0, 4] },
+            { text: payload.deliveryLabel, bold: true, fontSize: 10 },
+            { text: `Adrese: ${payload.address}`, fontSize: 9.5, color: '#44403c', margin: [0, 2, 0, 0] },
+            { text: `Apmaksa: ${payload.paymentMethodLabel}`, fontSize: 9.5, color: '#44403c', margin: [0, 2, 0, 0] },
+          ],
+        },
+      ],
+      columnGap: 20,
+      margin: [0, 0, 0, 18],
+    },
+  ];
+
+  if (payload.notes) {
+    content.push({
+      table: {
+        widths: ['*'],
+        body: [
+          [
+            {
+              text: `Piezīmes: ${payload.notes}`,
+              fontSize: 9,
+              color: '#44403c',
+              fillColor: '#fafaf9',
+              margin: [10, 8, 10, 8],
+            },
+          ],
+        ],
+      },
+      layout: {
+        hLineColor: () => '#e7e5e4',
+        vLineColor: () => '#e7e5e4',
+      },
+      margin: [0, 0, 0, 16],
+    });
+  }
+
+  content.push(
+    {
+      table: {
+        headerRows: 1,
+        widths: ['*', 45, 70, 75],
+        body: itemRows,
+      },
+      layout: {
+        fillColor: (rowIndex: number) => (rowIndex === 0 ? '#f5f5f4' : null),
+        hLineColor: (i: number) => (i === 1 ? '#1c1917' : '#e7e5e4'),
+        vLineWidth: () => 0,
+        paddingTop: () => 8,
+        paddingBottom: () => 8,
+        paddingLeft: () => 6,
+        paddingRight: () => 6,
+      },
+      margin: [0, 0, 0, 16],
+    },
+    {
+      columns: [
+        { width: '*', text: '' },
+        {
+          width: 240,
+          table: {
+            widths: ['*', 'auto'],
+            body: summaryRows,
+          },
+          layout: {
+            hLineWidth: (i: number) => (i === summaryRows.length - 1 ? 1 : 0),
+            vLineWidth: () => 0,
+            hLineColor: () => '#1c1917',
+            paddingTop: () => 4,
+            paddingBottom: () => 4,
+          },
+        },
+      ],
+      margin: [0, 0, 0, 26],
+    },
+    {
+      text: 'Paldies par uzticību VentVelo! Jautājumu gadījumā sazinieties ar meistaru Raivi pa tālruni +371 27 304 027 vai e-pastā ventspilsvelo@gmail.com.',
+      fontSize: 9,
+      color: '#78716c',
+      margin: [0, 12, 0, 0],
+    }
+  );
+
+  return {
+    pageSize: 'A4',
+    pageMargins: [40, 40, 40, 50],
+    defaultStyle: {
+      font: 'Roboto',
+      fontSize: 10,
+      color: '#1c1917',
+    },
+    content,
+    styles: {
+      tableHeader: {
+        bold: true,
+        fontSize: 9,
+        color: '#44403c',
+      },
+    },
+  };
+}
+
+export async function generateInvoicePdfBlob(payload: InvoiceDispatchPayload): Promise<Blob> {
+  ensurePdfFonts();
+  const docDef = buildPdfDocDefinition(payload);
+  return pdfMake.createPdf(docDef).getBlob();
+}
+
+export async function downloadInvoicePdf(payload: InvoiceDispatchPayload): Promise<void> {
+  ensurePdfFonts();
+  const docDef = buildPdfDocDefinition(payload);
+  await pdfMake.createPdf(docDef).download(`VentVelo-Rekins-${payload.orderNumber}.pdf`);
 }
 
 export function buildInvoiceHtml(payload: InvoiceDispatchPayload): string {
@@ -143,30 +404,6 @@ export function buildInvoiceHtml(payload: InvoiceDispatchPayload): string {
   `;
 }
 
-export function downloadInvoiceHtml(payload: InvoiceDispatchPayload): void {
-  const htmlDoc = `<!doctype html>
-<html lang="lv">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VentVelo Rēķins #${escapeHtml(payload.orderNumber)}</title>
-</head>
-<body style="margin: 24px; background: #f5f5f4;">
-  ${buildInvoiceHtml(payload)}
-</body>
-</html>`;
-
-  const blob = new Blob([htmlDoc], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `VentVelo-Rekins-${payload.orderNumber}.html`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 function buildFormPayloadFields(payload: InvoiceDispatchPayload): {
   fields: Record<string, string>;
   shouldCcCustomer: boolean;
@@ -185,20 +422,20 @@ function buildFormPayloadFields(payload: InvoiceDispatchPayload): {
 
   const fields: Record<string, string> = {
     _subject: `VentVelo Rēķins #${payload.orderNumber} — ${payload.customerName} (${payload.totalFormatted})`,
-    _template: 'table',
+    _template: 'box',
     _captcha: 'false',
-    Rēķina_numurs: `#${payload.orderNumber}`,
+    'Rēķina numurs': `#${payload.orderNumber}`,
     Datums: payload.createdAt,
     Klients: payload.customerName,
-    Klienta_epasts: trimmedCustomerEmail || 'Nav norādīts',
-    Klienta_tālrunis: payload.customerPhone || 'Nav norādīts',
-    Preces_un_pakalpojumi: itemsText,
+    'Klienta e-pasts': trimmedCustomerEmail || 'Nav norādīts',
+    'Klienta tālrunis': payload.customerPhone || 'Nav norādīts',
+    'Preces un pakalpojumi': itemsText,
     Starpsumma: payload.subtotalFormatted,
     ...(payload.discountFormatted ? { Atlaide: `-${payload.discountFormatted}` } : {}),
     Piegāde: `${payload.deliveryLabel} (${payload.shippingFormatted})`,
-    Piegādes_adrese: payload.address,
-    Apmaksas_veids: payload.paymentMethodLabel,
-    Kopā_apmaksai_ar_PVN: payload.totalFormatted,
+    'Piegādes adrese': payload.address,
+    'Apmaksas veids': payload.paymentMethodLabel,
+    'Kopā apmaksai (ar PVN)': payload.totalFormatted,
     ...(payload.notes ? { Piezīmes: payload.notes } : {}),
     Pārdevējs: `SIA VentVelo · Rindas iela 44, Ventspils · +371 27 304 027 · ${STORE_OFFICIAL_EMAIL}`,
   };
@@ -235,17 +472,56 @@ export function submitViaStandardForm(payload: InvoiceDispatchPayload): void {
 export async function sendInvoiceEmails(payload: InvoiceDispatchPayload): Promise<InvoiceDispatchResult> {
   const { fields, shouldCcCustomer } = buildFormPayloadFields(payload);
 
+  let pdfBlob: Blob | null = null;
   try {
-    const response = await fetch(FORMSUBMIT_AJAX_URL, {
-      method: 'POST',
-      mode: 'cors',
-      referrerPolicy: 'origin-when-cross-origin',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(fields),
-    });
+    pdfBlob = await generateInvoicePdfBlob(payload);
+  } catch {
+    pdfBlob = null;
+  }
+
+  try {
+    let response: Response;
+    if (pdfBlob) {
+      const formData = new FormData();
+      Object.entries(fields).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+      formData.append('attachment', pdfBlob, `VentVelo-Rekins-${payload.orderNumber}.pdf`);
+
+      response = await fetch(FORMSUBMIT_AJAX_URL, {
+        method: 'POST',
+        mode: 'cors',
+        referrerPolicy: 'origin-when-cross-origin',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        response = await fetch(FORMSUBMIT_AJAX_URL, {
+          method: 'POST',
+          mode: 'cors',
+          referrerPolicy: 'origin-when-cross-origin',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(fields),
+        });
+      }
+    } else {
+      response = await fetch(FORMSUBMIT_AJAX_URL, {
+        method: 'POST',
+        mode: 'cors',
+        referrerPolicy: 'origin-when-cross-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(fields),
+      });
+    }
 
     const result = await response.json().catch(() => null);
     const success = result?.success === 'true' || result?.success === true;

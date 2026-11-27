@@ -4,7 +4,7 @@ import { CartItem, EmailNotification, OrderRecord } from '../../types';
 import { BikeImage } from '../common/BikeImage';
 import {
   buildInvoiceHtml,
-  downloadInvoiceHtml,
+  downloadInvoicePdf,
   InvoiceDispatchPayload,
   sendInvoiceEmails,
   STORE_OFFICIAL_EMAIL,
@@ -728,11 +728,11 @@ export const PaymentGatewayModal: React.FC = () => {
                 {lastInvoicePayload && (
                   <button
                     type="button"
-                    onClick={() => downloadInvoiceHtml(lastInvoicePayload)}
+                    onClick={() => void downloadInvoicePdf(lastInvoicePayload)}
                     className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-300 rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Lejupielādēt rēķinu</span>
+                    <span>Lejupielādēt rēķinu (.pdf)</span>
                   </button>
                 )}
                 <button
